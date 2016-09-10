@@ -5,13 +5,13 @@ import (
 	"github.com/tarantool/go-tarantool"
 	"log"
 	"time"
+	"reflect"
 )
 
 
 func main() {
 	server := "77.244.214.4:3301"
-	spaceNo := "sessions"
-	indexNo := uint32(0)
+
 	opts := tarantool.Opts{
 		Timeout:       150 * time.Millisecond,
 		Reconnect:     1 * time.Second,
@@ -28,86 +28,67 @@ func main() {
 	log.Println(resp.Code)
 	log.Println(resp.Data)
 	log.Println(err)
-	// insert new tuple { 10, 1 }
-	resp, err = client.Insert(spaceNo, []interface{}{uint(1), 1})
-	// or
-	resp, err = client.Insert("sessions", []interface{}{uint(2), 1})
-	log.Println("\n\nInsert")
-	log.Println("Error", err)
-	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data)
 
-	// delete tuple with primary key { 10 }
-	resp, err = client.Delete(spaceNo, indexNo, []interface{}{uint(1)})
-	// or
-	resp, err = client.Delete("sessions", "primary", []interface{}{uint(10)})
-	log.Println("\n\nDelete")
-	log.Println("Error", err)
-	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data)
 
-	// replace tuple with { 13, 1 }
-	resp, err = client.Replace(spaceNo, []interface{}{uint(2), 1})
-	// or
-	resp, err = client.Replace("sessions", []interface{}{uint(2), 1})
-	log.Println("\n\nReplace")
-	log.Println("Error", err)
-	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data)
+	//f := map[string]interface{}{
+	//	"Name": "Wednesday",
+	//	"Age":  6,
+	//	"Parents": []interface{}{
+	//		"Gomez",
+	//		"Morticia",
+	//	},
+	//}
 
-	// update tuple with primary key { 13 }, incrementing second field by 3
-	resp, err = client.Update(spaceNo, indexNo, []interface{}{uint(13)}, []interface{}{[]interface{}{"+", 1, 3}})
-	// or
-	resp, err = client.Update("sessions", "primary", []interface{}{uint(13)}, []interface{}{[]interface{}{"+", 1, 3}})
-	log.Println("\n\nUpdate")
-	log.Println("Error", err)
-	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data)
+	//resp, err = client.Insert("sessions", )
+	//log.Println(resp.Code)
+	//log.Println(resp.Data)
+	//log.Println(err)
 
-	// insert tuple {15, 1} or increment second field by 1
-	resp, err = client.Upsert(spaceNo, []interface{}{uint(15), 1}, []interface{}{[]interface{}{"+", 1, 1}})
-	// or
-	resp, err = client.Upsert("sessions", []interface{}{uint(15), 1}, []interface{}{[]interface{}{"+", 1, 1}})
-	log.Println("\n\nUpsert")
+	resp, err = client.Select("sessions", "primary", 0, 1, tarantool.IterEq, []interface{}{uint(5)})
+	log.Println("Select")
 	log.Println("Error", err)
 	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data)
+	log.Println("Data", resp.Data[0])
+	log.Println(reflect.TypeOf(resp.Data[0]))
+	iris.Get("/", func(c *iris.Context) {
+		c.Write("You should navigate to the /set, /get, /delete, /clear,/destroy instead")
+	})
+	iris.Get("/set", func(c *iris.Context) {
 
-	// select just one tuple with primay key { 15 }
-	resp, err = client.Select(spaceNo, indexNo, 0, 1, tarantool.IterEq, []interface{}{uint(15)})
-	// or
-	resp, err = client.Select("sessions", "primary", 0, 1, tarantool.IterEq, []interface{}{uint(15)})
-	log.Println("\n\nSelect")
-	log.Println("Error", err)
-	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data)
+		//set session values
+		c.Session().Set("name", "iris")
 
-	// select tuples by condition ( primay key > 15 ) with offset 7 limit 5
-	// BTREE index supposed
-	resp, err = client.Select(spaceNo, indexNo, 7, 5, tarantool.IterGt, []interface{}{uint(15)})
-	// or
-	resp, err = client.Select("sessions", "primary", 7, 5, tarantool.IterGt, []interface{}{uint(15)})
-	log.Println("\n\nSelect")
-	log.Println("Error", err)
-	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data)
+		//test if setted here
+		c.Write("All ok session setted to: %s", c.Session().GetString("name"))
+	})
 
-	// call function 'func_name' with arguments
-	resp, err = client.Call("func_name", []interface{}{1, 2, 3})
-	log.Println("\n\nCall")
-	log.Println("Error", err)
-	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data)
+	iris.Get("/get", func(c *iris.Context) {
+		// get a specific key, as string, if no found returns just an empty string
+		//name := c.Session().GetString("name")
 
-	// run raw lua code
-	resp, err = client.Eval("return 1 + 2", []interface{}{})
-	log.Println("\n\nEval")
-	log.Println("Error", err)
-	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data)
-	api := iris.New()
-	api.Get("/hi", hi)
-	api.Listen(":8080")
+		c.Write("The name on the /set was: %s", c.Session().ID())
+	})
+
+	iris.Get("/delete", func(c *iris.Context) {
+		// delete a specific key
+		c.Session().Delete("name")
+		//c.Session().ID()
+	})
+
+	iris.Get("/clear", func(c *iris.Context) {
+		// removes all entries
+		c.Session().Clear()
+	})
+
+	iris.Get("/destroy", func(c *iris.Context) {
+		//destroy, removes the entire session and cookie
+		c.SessionDestroy()
+		c.Log("You have to refresh the page to completely remove the session (on browsers), so the name should NOT be empty NOW, is it?\n ame: %s\n\nAlso check your cookies in your browser's cookies, should be no field for localhost/127.0.0.1 (or what ever you use)", c.Session().GetString("name"))
+		c.Write("You have to refresh the page to completely remove the session (on browsers), so the name should NOT be empty NOW, is it?\nName: %s\n\nAlso check your cookies in your browser's cookies, should be no field for localhost/127.0.0.1 (or what ever you use)", c.Session().GetString("name"))
+	})
+
+
+	iris.Listen(":8080")
 }
 
 func hi(ctx *iris.Context){
