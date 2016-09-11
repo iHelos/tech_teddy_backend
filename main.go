@@ -40,7 +40,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = "80"
+		port = "8080"
 	}
 	iris.Get("/", func(c *iris.Context) {
 		c.Write("You should navigate to the /set, /get, /delete, /clear,/destroy instead")
