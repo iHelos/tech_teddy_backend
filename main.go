@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 	"os"
-	"github.com/iHelos/tech-teddy-backend/sessionDB"
+	"github.com/iHelos/tech_teddy_backend/sessionDB"
 )
 
 type sessionConnection struct{
