@@ -5,6 +5,6 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="jdk" jdkName="Go 1.6.3" jdkType="Go SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="GOPATH &lt;tech-teddy-backend&gt;" level="project" />
+    <orderEntry type="library" name="GOPATH &lt;tech_teddy_backend&gt;" level="project" />
   </component>
 </module>

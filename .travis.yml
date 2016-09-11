@@ -2,7 +2,7 @@ language: go
 before_install:
   - cp .netrc ~
   - chmod 600 .netrc
-  
+
 deploy:
   provider: heroku
   api_key:
