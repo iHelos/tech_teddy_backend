@@ -21,15 +21,18 @@
       <root url="file://$PROJECT_DIR$/../../microcosm-cc/bluemonday/.git" />
       <root url="file://$PROJECT_DIR$/../../kataras/go-template/.git" />
       <root url="file://$PROJECT_DIR$/../../xeipuuv/gojsonschema/.git" />
+      <root url="file://$PROJECT_DIR$/../../davecgh/go-spew/.git" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/net/http2/testdata" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/net/.git" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/tools/cmd/bundle/testdata" />
       <root url="file://$PROJECT_DIR$/../../russross/blackfriday/testdata" />
       <root url="file://$PROJECT_DIR$/../../garyburd/redigo/.git" />
       <root url="file://$PROJECT_DIR$/../../russross/blackfriday/.git" />
+      <root url="file://$PROJECT_DIR$/../../davecgh/go-spew/spew/testdata" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/net/bpf/testdata" />
       <root url="file://$PROJECT_DIR$/../../kataras/go-fs/.git" />
       <root url="file://$PROJECT_DIR$/../../../gopkg.in/square/go-jose.v1/.git" />
+      <root url="file://$PROJECT_DIR$/../../pmezard/go-difflib/.git" />
       <root url="file://$PROJECT_DIR$/../../ajg/form/.git" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/crypto/sha3/testdata" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/tools/.git" />
@@ -43,6 +46,7 @@
       <root url="file://$PROJECT_DIR$/../goforum/.idea" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/tools/cmd/stringer/testdata" />
       <root url="file://$PROJECT_DIR$/../../sergi/go-diff/.git" />
+      <root url="file://$PROJECT_DIR$/../../gorilla/websocket/.git" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/tools/cmd/callgraph/testdata" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/net/html/charset/testdata" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/tools/cmd/fiximports/testdata" />
@@ -101,13 +105,16 @@
       <root url="file://$PROJECT_DIR$/../../klauspost/compress/gzip/testdata" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/tools/oracle/testdata" />
       <root url="file://$PROJECT_DIR$/../../kardianos/service/.git" />
+      <root url="file://$PROJECT_DIR$/../../tools/godep/.github" />
       <root url="file://$PROJECT_DIR$/../sessiondb/.git" />
       <root url="file://$PROJECT_DIR$/../../mattn/go-isatty/.git" />
+      <root url="file://$PROJECT_DIR$/../../tools/godep/.vscode" />
       <root url="file://$PROJECT_DIR$/../../iris-contrib/websocket/.git" />
       <root url="file://$PROJECT_DIR$/../sessiondb/.idea" />
       <root url="file://$PROJECT_DIR$/../../gavv/gojsondiff/.git" />
       <root url="file://$PROJECT_DIR$/../../mattn/go-isatty/_example" />
       <root url="file://$PROJECT_DIR$/../../klauspost/compress/flate/testdata" />
+      <root url="file://$PROJECT_DIR$/../../tools/godep/.git" />
       <root url="file://$PROJECT_DIR$/../../iris-contrib/formBinder/.git" />
       <root url="file://$PROJECT_DIR$/../../mattn/go-colorable/.git" />
     </excluded>

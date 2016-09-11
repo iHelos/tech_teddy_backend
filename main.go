@@ -6,14 +6,19 @@ import (
 	"log"
 	"time"
 	"reflect"
+	"os"
 )
 
 
 func main() {
 	server := "77.244.214.4:3301"
+	port := os.Getenv("PORT")
 
+	if port == "" {
+		port = "80"
+	}
 	opts := tarantool.Opts{
-		Timeout:       150 * time.Millisecond,
+		Timeout:       500 * time.Millisecond,
 		Reconnect:     1 * time.Second,
 		MaxReconnects: 3,
 		User:          "goClient",
@@ -88,7 +93,7 @@ func main() {
 	})
 
 
-	iris.Listen(":8080")
+	iris.Listen(":"+port)
 }
 
 func hi(ctx *iris.Context){
