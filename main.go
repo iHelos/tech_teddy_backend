@@ -5,18 +5,21 @@ import (
 	"github.com/tarantool/go-tarantool"
 	"log"
 	"time"
-	"reflect"
 	"os"
+	"github.com/iHelos/tech-teddy-backend/sessionDB"
 )
 
+type sessionConnection struct{
+ 	*tarantool.Connection
+}
 
-func main() {
+func (conn sessionConnection)PingMe()  error  {
+	_, err := conn.Ping()
+	return err
+}
+
+func init()  {
 	server := "77.244.214.4:3301"
-	port := os.Getenv("PORT")
-
-	if port == "" {
-		port = "80"
-	}
 	opts := tarantool.Opts{
 		Timeout:       500 * time.Millisecond,
 		Reconnect:     1 * time.Second,
@@ -29,32 +32,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect: %s", err.Error())
 	}
-	resp, err := client.Ping()
-	log.Println(resp.Code)
-	log.Println(resp.Data)
-	log.Println(err)
+	sessionstorage := sessionDB.SessionConnection{client}
+	iris.UseSessionDB(sessionstorage)
+}
 
+func main() {
+	port := os.Getenv("PORT")
 
-	//f := map[string]interface{}{
-	//	"Name": "Wednesday",
-	//	"Age":  6,
-	//	"Parents": []interface{}{
-	//		"Gomez",
-	//		"Morticia",
-	//	},
-	//}
-
-	//resp, err = client.Insert("sessions", )
-	//log.Println(resp.Code)
-	//log.Println(resp.Data)
-	//log.Println(err)
-
-	resp, err = client.Select("sessions", "primary", 0, 1, tarantool.IterEq, []interface{}{uint(5)})
-	log.Println("Select")
-	log.Println("Error", err)
-	log.Println("Code", resp.Code)
-	log.Println("Data", resp.Data[0])
-	log.Println(reflect.TypeOf(resp.Data[0]))
+	if port == "" {
+		port = "8080"
+	}
 	iris.Get("/", func(c *iris.Context) {
 		c.Write("You should navigate to the /set, /get, /delete, /clear,/destroy instead")
 	})
