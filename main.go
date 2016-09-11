@@ -13,11 +13,6 @@ type sessionConnection struct{
  	*tarantool.Connection
 }
 
-func (conn sessionConnection)PingMe()  error  {
-	_, err := conn.Ping()
-	return err
-}
-
 func init()  {
 	server := "77.244.214.4:3301"
 	opts := tarantool.Opts{
@@ -81,8 +76,4 @@ func main() {
 
 
 	iris.Listen(":"+port)
-}
-
-func hi(ctx *iris.Context){
-	ctx.Write("Hi %s", "iris")
 }
