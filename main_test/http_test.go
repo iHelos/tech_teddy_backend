@@ -1,4 +1,4 @@
-package main__test
+package main_test
 
 import (
 	"log"
