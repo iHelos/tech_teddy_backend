@@ -39,6 +39,9 @@ func init()  {
 	iris.Config.IsDevelopment = true
 	iris.Config.Gzip  = true
 	iris.Config.Charset = "UTF-8"
+
+	iris.StaticWeb("/","./static", 0)
+
 	iris.UseTemplate(html.New(html.Config{
 		Layout: "layout.html",
 	})).Directory("./templates", ".html")
