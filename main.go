@@ -36,11 +36,11 @@ func init()  {
 	sessionstorage := sessionDB.SessionConnection{client}
 
 	iris.UseSessionDB(sessionstorage)
-	iris.Config.IsDevelopment = true
-	iris.Config.Gzip  = true
+	iris.Config.IsDevelopment = false
+	iris.Config.Gzip  = false
 	iris.Config.Charset = "UTF-8"
 
-	iris.StaticWeb("/","./static", 0)
+	iris.StaticServe("./static")
 
 	iris.UseTemplate(html.New(html.Config{
 		Layout: "layout.html",
@@ -51,7 +51,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = "8080"
+		port = "80"
 	}
 	iris.Get("/", func(c *iris.Context) {
 		c.Render("index.html", struct{Title string
