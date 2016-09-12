@@ -61,10 +61,6 @@
 			"Rev": "2a9ed749d24d8d2a8ece891b7b6242f0b3192d62"
 		},
 		{
-			"ImportPath": "github.com/iris-contrib/middleware/basicauth",
-			"Rev": "c690f8a44a767f524f5119c814cf2b12a85b769a"
-		},
-		{
 			"ImportPath": "github.com/iris-contrib/response/data",
 			"Rev": "ff43c463ebf896c1cd86a236c67b653b48258e60"
 		},
