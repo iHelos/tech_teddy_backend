@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/iris-contrib/middleware/basicauth"
 	"github.com/kataras/iris"
 	"github.com/tarantool/go-tarantool"
 	"log"
@@ -27,6 +28,11 @@ func init()  {
 	if err != nil {
 		log.Fatalf("Failed to connect: %s", err.Error())
 	}
+	resp, err := client.Ping()
+	log.Println(resp.Code)
+	log.Println(resp.Data)
+	log.Println(err)
+
 	sessionstorage := sessionDB.SessionConnection{client}
 	iris.UseSessionDB(sessionstorage)
 }
@@ -53,7 +59,7 @@ func main() {
 		// get a specific key, as string, if no found returns just an empty string
 		//name := c.Session().GetString("name")
 
-		c.Write("The name on the /set was: %s", c.Session().ID())
+		c.Write("The name on the /set was: %s", c.Session().GetString("name"))
 	})
 
 	iris.Get("/delete", func(c *iris.Context) {
@@ -74,6 +80,32 @@ func main() {
 		c.Write("You have to refresh the page to completely remove the session (on browsers), so the name should NOT be empty NOW, is it?\nName: %s\n\nAlso check your cookies in your browser's cookies, should be no field for localhost/127.0.0.1 (or what ever you use)", c.Session().GetString("name"))
 	})
 
+	authConfig := basicauth.Config{
+		Users:      map[string]string{"myusername": "mypassword", "mySecondusername": "mySecondpassword"},
+		Realm:      "Authorization Required", // if you don't set it it's "Authorization Required"
+		ContextKey: "mycustomkey",            // if you don't set it it's "user"
+		Expires:    time.Duration(30) * time.Minute,
+	}
+
+	authentication := basicauth.New(authConfig)
+
+	needAuth := iris.Party("/secret", authentication)
+	{
+		needAuth.Get("/", func(ctx *iris.Context) {
+			username := ctx.GetString("mycustomkey") //  the Contextkey from the authConfig
+			ctx.Write("Hello authenticated user: %s from localhost:8080/secret ", username)
+		})
+
+		needAuth.Get("/profile", func(ctx *iris.Context) {
+			username := ctx.GetString("mycustomkey") //  the Contextkey from the authConfig
+			ctx.Write("Hello authenticated user: %s from localhost:8080/secret/profile ", username)
+		})
+
+		needAuth.Get("/settings", func(ctx *iris.Context) {
+			username := ctx.GetString("mycustomkey") //  the Contextkey from the authConfig
+			ctx.Write("Hello authenticated user: %s from localhost:8080/secret/settings ", username)
+		})
+	}
 
 	iris.Listen(":"+port)
 }

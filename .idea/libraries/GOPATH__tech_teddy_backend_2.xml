@@ -78,6 +78,7 @@
       <root url="file://$PROJECT_DIR$/../../kataras/go-errors/.git" />
       <root url="file://$PROJECT_DIR$/../../xeipuuv/gojsonreference/.git" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/time/.git" />
+      <root url="file://$PROJECT_DIR$/../../iris-contrib/middleware/.git" />
       <root url="file://$PROJECT_DIR$/../../../golang.org/x/tools/go/pointer/testdata" />
       <root url="file://$PROJECT_DIR$/../../shurcooL/sanitized_anchor_name/.git" />
       <root url="file://$PROJECT_DIR$/../../valyala/bytebufferpool/.git" />
