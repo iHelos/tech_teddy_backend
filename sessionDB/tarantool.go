@@ -29,9 +29,9 @@ func (connection SessionConnection) Load(sid string) map[string]interface{} {
 // update updates the real redis store
 func (connection SessionConnection) Update(sid string, newValues map[string]interface{}) {
 	if len(newValues) == 0 {
-		go connection.Delete("sessions", "primary", []interface{}{sid})
+		connection.Delete("sessions", "primary", []interface{}{sid})
 	} else {
-		go connection.Replace("sessions", []interface{}{sid, newValues})
+		connection.Replace("sessions", []interface{}{sid, newValues})
 	}
 
 }
