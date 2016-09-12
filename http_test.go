@@ -10,7 +10,7 @@ import (
 func BenchmarkHttpParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			resp, err := http.Get("http://localhost:8080/set/")
+			resp, err := http.Get("http://localhost:8080/")
 			if err != nil {
 				log.Fatal(err)
 			}
