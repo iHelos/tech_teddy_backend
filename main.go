@@ -51,7 +51,7 @@ func main() {
 		port = "8080"
 	}
 	iris.Get("/", func(c *iris.Context) {
-		c.Render("main.html", struct{Title string
+		c.Render("index.html", struct{Title string
 					     Message []string}{"My Page title", []string{"message1","message2"}})
 
 	})
