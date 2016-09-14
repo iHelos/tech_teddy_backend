@@ -9,11 +9,11 @@ import (
 	"github.com/iHelos/tech_teddy/sessionDB"
 	"github.com/kataras/go-template/html"
 	"github.com/iHelos/tech_teddy/filelogger"
+	"github.com/iHelos/tech_teddy/teddyUsers"
+	"github.com/iHelos/tech_teddy/teddyUsers/tarantool-user-storage"
 )
 
-type sessionConnection struct{
-	*tarantool.Connection
-}
+var userstorage *teddyUsers.UserStorage
 
 func init()  {
 	server := "77.244.214.4:3301"
@@ -35,6 +35,8 @@ func init()  {
 	log.Println(err)
 
 	sessionstorage := sessionDB.SessionConnection{client}
+	userstorage = teddyUsers.New(iris.Config.Sessions.Cookie)
+	userstorage.Engine = tarantool_user_storage.StorageConnection{client}
 
 	iris.UseSessionDB(sessionstorage)
 	iris.Config.IsDevelopment = false
@@ -56,15 +58,38 @@ func main() {
 	}
 
 	saveapi := iris.Party("/saveapi/")
-
-
 	saveapi.Use(filelogger.New("log.txt"))
-
 	saveapi.Get("*randomName", func(ctx *iris.Context) {
+		
 	} )
-
 	saveapi.Post("*randomName", func(ctx *iris.Context) {
+
 	} )
 
+	cookie := iris.Party("/cookie/")
+
+	cookie.Get("/set", func(c *iris.Context) {
+		c.Session().Set("name", "iris")
+		c.Write("All ok session set to: %s", c.Session().GetString("name"))
+	})
+
+	cookie.Get("/get", func(c *iris.Context) {
+		name := c.Session().GetString("name")
+		c.Write("The name on the /set was: %s", name)
+	})
+
+	cookie.Get("/delete", func(c *iris.Context) {
+		c.Session().Delete("name")
+	})
+
+	cookie.Get("/clear", func(c *iris.Context) {
+		c.Session().Clear()
+	})
+
+	cookie.Get("/destroy", func(c *iris.Context) {
+		c.SessionDestroy()
+		c.Log("You have to refresh the page to completely remove the session (on browsers), so the name should NOT be empty NOW, is it?\n ame: %s\n\nAlso check your cookies in your browser's cookies, should be no field for localhost/127.0.0.1 (or what ever you use)", c.Session().GetString("name"))
+		c.Write("You have to refresh the page to completely remove the session (on browsers), so the name should NOT be empty NOW, is it?\nName: %s\n\nAlso check your cookies in your browser's cookies, should be no field for localhost/127.0.0.1 (or what ever you use)", c.Session().GetString("name"))
+	})
 	iris.Listen(":"+port)
 }
