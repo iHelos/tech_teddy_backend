@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
+//	"os/user"
 )
 
 type UserStorageEngine interface {
@@ -19,13 +20,34 @@ type UserStorage struct {
 }
 
 type NewUser struct {
-	Name        string `json:"name" valid:"required"`
-	Email string `json:"email" valid:"required,email"`
-	Password string `json:"password" valid:"required"`
-	CheckPassword string `json:"password2" valid:"required"`
+	Name        string `json:"name" valid:"required" form:"name"`
+	Email string `json:"email" valid:"required,email" form:"email"`
+	Password string `json:"password" valid:"required" form:"password"`
+	CheckPassword string `json:"password2" valid:"required" form:"password2"`
 }
 
+
 func (storage *UserStorage) CreateUser(ctx *iris.Context) (*NewUser, error){
+	ctx.Request.Body()
+	var user = NewUser{}
+	err := ctx.ReadForm(&user)
+	if err !=nil{
+		return nil, err
+	}
+	err = user.check()
+	if err != nil{
+		return nil, err
+	}
+	hashpassword,err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	err = storage.Engine.Create(user.Name, user.Email, string(hashpassword))
+	if err != nil{
+		return nil, err
+	}
+	ctx.Session().Set("name", user.Name)
+	return &user, nil
+}
+
+func (storage *UserStorage) CreateUserApi(ctx *iris.Context) (*NewUser, error){
 	ctx.Request.Body()
 	var user NewUser
 	err := json.Unmarshal(ctx.Request.Body(), &user)
@@ -33,17 +55,27 @@ func (storage *UserStorage) CreateUser(ctx *iris.Context) (*NewUser, error){
 		return nil, err
 	}
 
-	if check, err := govalidator.ValidateStruct(user); !check{
+	err = user.check()
+	if err != nil{
 		return nil, err
 	}
 
-	if user.Password != user.CheckPassword{
-		return nil, errors.New("passwords mismatch")
-	}
-
 	hashpassword,err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	storage.Engine.Create(user.Name, user.Email, string(hashpassword))
+	err = storage.Engine.Create(user.Name, user.Email, string(hashpassword))
+	if err != nil{
+		return nil, err
+	}
+	ctx.Session().Set("name", user.Name)
 	return &user, nil
+}
+
+func (user *NewUser) check() error {
+	if check, err := govalidator.ValidateStruct(user); !check{
+		return err
+	} else if user.Password != user.CheckPassword{
+		return errors.New("passwords mismatch")
+	}
+	return nil
 }
 
 func New(cookiepath string) *UserStorage{

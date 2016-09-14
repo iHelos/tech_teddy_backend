@@ -1,6 +1,4 @@
- box.cfg {
-
-
+box.cfg {
     -- wal_dir = nil;
 
     -- An absolute path to directory where snapshot (.snap) files are stored.
@@ -28,31 +26,31 @@
     -- How much memory Tarantool allocates
     -- to actually store tuples, in gigabytes
 
-     slab_alloc_arena = 0.5;
+    slab_alloc_arena = 0.5;
 
-     -- Size of the smallest allocation unit
-     -- It can be tuned up if most of the tuples are not so small
-     slab_alloc_minimal = 16;
+    -- Size of the smallest allocation unit
+    -- It can be tuned up if most of the tuples are not so small
+    slab_alloc_minimal = 16;
 
-     -- Size of the largest allocation unit
-     -- It can be tuned up if it is necessary to store large tuples
-     slab_alloc_maximal = 1048576;
+    -- Size of the largest allocation unit
+    -- It can be tuned up if it is necessary to store large tuples
+    slab_alloc_maximal = 1048576;
 
-     -- Use slab_alloc_factor as the multiplier for computing
-     -- the sizes of memory chunks that tuples are stored in
-     slab_alloc_factor = 1.06;
+    -- Use slab_alloc_factor as the multiplier for computing
+    -- the sizes of memory chunks that tuples are stored in
+    slab_alloc_factor = 1.06;
 
-     -------------------
-     -- Snapshot daemon
-     -------------------
+    -------------------
+    -- Snapshot daemon
+    -------------------
 
-     -- The interval between actions by the snapshot daemon, in seconds
-     snapshot_period = 5;
+    -- The interval between actions by the snapshot daemon, in seconds
+    snapshot_period = 5;
 
-     -- The maximum number of snapshots that the snapshot daemon maintans
-     snapshot_count = 6;
+    -- The maximum number of snapshots that the snapshot daemon maintans
+    snapshot_count = 6;
 
-   --------------------------------
+    --------------------------------
 
     -- Abort if there is an error while reading
     -- the snapshot file (at server start)
@@ -78,33 +76,33 @@
 
     -- Number of seconds between periodic scans of the write-ahead-log
 
-       wal_dir_rescan_delay = 2.0;
+    wal_dir_rescan_delay = 2.0;
 
-       ---------------
-       -- Replication
-       ---------------
+    ---------------
+    -- Replication
+    ---------------
 
-       -- The server is considered to be a Tarantool replica
-       -- it will try to connect to the master
-       -- which replication_source specifies with a URI
-       -- for example konstantin:secret_password@tarantool.org:3301
-       -- by default username is "guest"
-       -- replication_source="127.0.0.1:3102";
+    -- The server is considered to be a Tarantool replica
+    -- it will try to connect to the master
+    -- which replication_source specifies with a URI
+    -- for example konstantin:secret_password@tarantool.org:3301
+    -- by default username is "guest"
+    -- replication_source="127.0.0.1:3102";
 
-       --------------
-       -- Networking
-       --------------
+    --------------
+    -- Networking
+    --------------
 
-       -- The server will sleep for io_collect_interval seconds
-       -- between iterations of the event loop
-       io_collect_interval = nil;
+    -- The server will sleep for io_collect_interval seconds
+    -- between iterations of the event loop
+    io_collect_interval = nil;
 
-       -- The size of the read-ahead buffer associated with a client connection
-       readahead = 16320;
+    -- The size of the read-ahead buffer associated with a client connection
+    readahead = 16320;
 
-       ----------
-       -- Logging
-       ----------
+    ----------
+    -- Logging
+    ----------
 
     -- How verbose the logging is. There are six log verbosity classes:
     -- 1 – SYSERROR
@@ -130,13 +128,13 @@
 
 local function bootstrap()
     local space = box.schema.create_space('sessions')
-    space:create_index('primary', {type = 'hash', parts = { 1, 'string'}})
+    space:create_index('primary', { type = 'hash', parts = { 1, 'string' } })
     local profilespace = box.schema.create_space('profile')
-    profilespace:create_index('primary', {type = 'hash', parts = {1, 'string'}})
+    profilespace:create_index('primary', { type = 'hash', parts = { 1, 'string' } })
     local toyspace = box.schema.create_space('toy')
-    toyspace:create_index('primary', {type = 'hash', parts = {1, 'unsigned'}})
+    toyspace:create_index('primary', { type = 'hash', parts = { 1, 'unsigned' } })
     local audiospace = box.schema.create_space('audio')
-    audiospace:create_index('primary', {type = 'hash', parts = {1, 'unsigned'}})
+    audiospace:create_index('primary', { type = 'hash', parts = { 1, 'unsigned' } })
 
     box.schema.func.create('getProfile')
     box.schema.func.create('createProfile')
@@ -154,7 +152,6 @@ local function bootstrap()
     box.schema.user.grant('goClient', 'read,write,execute', 'space', 'audio')
     box.schema.user.grant('goClient', 'execute', 'function', 'getProfile')
     box.schema.user.grant('goClient', 'execute', 'function', 'createProfile')
- 
 end
 
 -- for first run create a space and add set up grants
@@ -162,16 +159,16 @@ box.once('sessions-1.1', bootstrap)
 
 
 function getProfile(sid)
-        session = box.space.sessions:select{sid}
-        if #session ~= 0 then
-                name = session[1][2]['name']
-                profile = box.space.profile:select{name}
-                return profile
-        end
-        return error("no such session")
+    session = box.space.sessions:select { sid }
+    if #session ~= 0 then
+        name = session[1][2]['name']
+        profile = box.space.profile:select { name }
+        return profile
+    end
+    return error("no such session")
 end
 
 function createProfile(name, email, password)
-        t = box.space.profile:insert{name,email,password}
-        return t
+    t = box.space.profile:insert { name, email, password }
+    return t
 end
