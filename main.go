@@ -8,7 +8,7 @@ import (
 	"os"
 	"github.com/iHelos/tech_teddy/sessionDB"
 	"github.com/kataras/go-template/html"
-	"github.com/iris-contrib/middleware/logger"
+	"github.com/iHelos/tech_teddy/filelogger"
 )
 
 type sessionConnection struct{
@@ -55,16 +55,15 @@ func main() {
 		port = "8080"
 	}
 
-	saveapi := iris.Party("/saveapi")
+	saveapi := iris.Party("/saveapi/")
 
-	mylogs := logger.New()
 
-	saveapi.Get("/*randomName", func(ctx *iris.Context) {
-		mylogs.Serve(ctx)
+	saveapi.Use(filelogger.New("log.txt"))
+
+	saveapi.Get("*randomName", func(ctx *iris.Context) {
 	} )
 
-	saveapi.Post("/*randomName", func(ctx *iris.Context) {
-		mylogs.Serve(ctx)
+	saveapi.Post("*randomName", func(ctx *iris.Context) {
 	} )
 
 	iris.Listen(":"+port)

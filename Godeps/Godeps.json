@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/iHelos/tech_teddy_backend",
+	"ImportPath": "github.com/iHelos/tech_teddy",
 	"GoVersion": "go1.6",
 	"GodepVersion": "v74",
 	"Deps": [
