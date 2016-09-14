@@ -7,15 +7,17 @@ import (
 	"time"
 	"os"
 	"github.com/iHelos/tech_teddy/sessionDB"
-	"github.com/kataras/go-template/html"
+//	"github.com/kataras/go-template/html"
 	"github.com/iHelos/tech_teddy/filelogger"
 	"github.com/iHelos/tech_teddy/teddyUsers"
 	"github.com/iHelos/tech_teddy/teddyUsers/tarantool-user-storage"
+	"github.com/asaskevich/govalidator"
+	"strings"
 )
 
 var userstorage *teddyUsers.UserStorage
 
-func init()  {
+func init() {
 	server := "77.244.214.4:3301"
 	opts := tarantool.Opts{
 		Timeout:       500 * time.Millisecond,
@@ -39,15 +41,15 @@ func init()  {
 	userstorage.Engine = tarantool_user_storage.StorageConnection{client}
 
 	iris.UseSessionDB(sessionstorage)
-	iris.Config.IsDevelopment = false
-	iris.Config.Gzip  = false
+	iris.Config.IsDevelopment = true
+	iris.Config.Gzip = false
 	iris.Config.Charset = "UTF-8"
 	iris.Config.Sessions.DisableSubdomainPersistence = false
 	iris.StaticServe("./static")
 
-	iris.UseTemplate(html.New(html.Config{
-		Layout: "layout.html",
-	})).Directory("./templates", ".html")
+	//iris.UseTemplate(html.New(html.Config{
+	//	Layout: "layout.html",
+	//})).Directory("./templates", ".html")
 }
 
 func main() {
@@ -57,30 +59,67 @@ func main() {
 		port = "8080"
 	}
 
-	saveapi := iris.Party("/saveapi/")
+	iris.Get("/", func(ctx *iris.Context) {
+		ctx.Render("index.html", nil)
+	})
+
+
+	webuser := iris.Party("/user/")
+
+	webuser.Post("/register", func(ctx *iris.Context) {
+		_, err := userstorage.CreateUser(ctx)
+		if errors, ok := err.(govalidator.Errors); ok {
+			errs := make(map[string]string)
+			for _, msg := range errors {
+				values := strings.Split(msg.Error(), ":")
+				errs[values[0]] = values[1]
+			}
+			ctx.JSON(iris.StatusOK, errs)
+		} else if err != nil {
+			log.Print(err)
+			ctx.JSON(iris.StatusOK, map[string]string{"error":err.Error()})
+		}        else {
+			ctx.JSON(iris.StatusOK, map[string]string{"cookie":ctx.Session().ID()} )
+		}
+	})("register")
+
+	api := iris.Party("/api/")
+
+	saveapi := api.Party("/saveapi/")
 	saveapi.Use(filelogger.New("log.txt"))
 	saveapi.Get("*randomName", func(ctx *iris.Context) {
 
-	} )
+	})
 	saveapi.Post("*randomName", func(ctx *iris.Context) {
 
-	} )
-
-	user := iris.Party("/user/")
-
-	user.Get("/login", func(c *iris.Context) {
-		c.Session().Set("name", "iris")
-		c.Write("All ok session set to: %s", c.Session().GetString("name"))
 	})
 
-	user.Get("/registration", func(c *iris.Context) {
-		name := c.Session().GetString("name")
-		c.Write("The name on the /set was: %s", name)
+	user := api.Party("/user/")
+	user.Use(filelogger.New("userlog.txt"))
+	user.Post("/login", func(ctx *iris.Context) {
+
 	})
 
-	user.Get("/logout", func(c *iris.Context) {
-		c.SessionDestroy()
+	user.Post("/register", func(ctx *iris.Context) {
+		_, err := userstorage.CreateUserApi(ctx)
+		if errors, ok := err.(govalidator.Errors); ok {
+			errs := make(map[string]string)
+			for _, msg := range errors {
+				values := strings.Split(msg.Error(), ":")
+				errs[values[0]] = values[1]
+			}
+			ctx.JSON(iris.StatusOK, errs)
+		} else if err != nil {
+			log.Print(err)
+			ctx.JSON(iris.StatusOK, map[string]string{"error":err.Error()})
+		}        else {
+			ctx.JSON(iris.StatusOK, map[string]string{"cookie":ctx.Session().ID()} )
+		}
+	})("api_register")
+
+	user.Post("/logout", func(ctx *iris.Context) {
+		ctx.SessionDestroy()
 	})
 
-	iris.Listen(":"+port)
+	iris.Listen(":" + port)
 }
