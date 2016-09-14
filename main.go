@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 	"os"
-	"github.com/iHelos/tech_teddy_backend/sessionDB"
+	"github.com/iHelos/tech_teddy/sessionDB"
 	"github.com/kataras/go-template/html"
 	"github.com/iris-contrib/middleware/logger"
 )
 
 type sessionConnection struct{
- 	*tarantool.Connection
+	*tarantool.Connection
 }
 
 func init()  {

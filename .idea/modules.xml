@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/tech_teddy_backend.iml" filepath="$PROJECT_DIR$/tech_teddy_backend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tech_teddy.iml" filepath="$PROJECT_DIR$/tech_teddy.iml" />
     </modules>
   </component>
 </project>
