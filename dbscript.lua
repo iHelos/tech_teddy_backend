@@ -172,3 +172,4 @@ function createProfile(name, email, password)
     t = box.space.profile:insert { name, email, password }
     return t
 end
+
