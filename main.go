@@ -63,31 +63,12 @@ func main() {
 		ctx.Render("index.html", nil)
 	})
 
-
-	webuser := iris.Party("/user/")
-
-	webuser.Post("/register", func(ctx *iris.Context) {
-		_, err := userstorage.CreateUser(ctx)
-		if errors, ok := err.(govalidator.Errors); ok {
-			errs := make(map[string]string)
-			for _, msg := range errors {
-				values := strings.Split(msg.Error(), ":")
-				errs[values[0]] = values[1]
-			}
-			ctx.JSON(iris.StatusOK, errs)
-		} else if err != nil {
-			ctx.JSON(iris.StatusOK, map[string]string{"error":err.Error()})
-		}        else {
-			 ctx.Redirect("/secret", 200)
-		}
-	})("register")
-
 	api := iris.Party("/api/")
 	api.Get("/", func(ctx *iris.Context) {
 		ctx.Redirect("http://docs.hardteddy.apiary.io")
 	})
 	saveapi := api.Party("/saveapi/")
-	saveapi.Use(filelogger.New("log.txt"))
+	saveapi.Use(filelogger.New("log.log"))
 	saveapi.Get("*randomName", func(ctx *iris.Context) {
 
 	})
@@ -95,14 +76,19 @@ func main() {
 
 	})
 
-	user := api.Party("/user/")
-	user.Use(filelogger.New("userlog.txt"))
-	user.Post("/login", func(ctx *iris.Context) {
-
+	apiuser := api.Party("/user/")
+	apiuser.Use(filelogger.New("userlog.log"))
+	apiuser.Post("/login", func(ctx *iris.Context) {
+		err := userstorage.LoginUser(ctx)
+		if err != nil{
+			ctx.JSON(iris.StatusOK, map[string]string{"error":err.Error()})
+		} else {
+			ctx.JSON(iris.StatusOK, map[string]string{"sessionid":ctx.Session().ID()})
+		}
 	})
 
-	user.Post("/register", func(ctx *iris.Context) {
-		_, err := userstorage.CreateUserApi(ctx)
+	apiuser.Post("/register", func(ctx *iris.Context) {
+		err := userstorage.CreateUser(ctx)
 		if errors, ok := err.(govalidator.Errors); ok {
 			errs := make(map[string]string)
 			for _, msg := range errors {
@@ -115,9 +101,9 @@ func main() {
 		}        else {
 			ctx.JSON(iris.StatusOK, map[string]string{"sessionid":ctx.Session().ID()} )
 		}
-	})("api_register")
+	})("register")
 
-	user.Post("/logout", func(ctx *iris.Context) {
+	apiuser.Post("/logout", func(ctx *iris.Context) {
 		ctx.SessionDestroy()
 	})
 
