@@ -76,15 +76,16 @@ func main() {
 			}
 			ctx.JSON(iris.StatusOK, errs)
 		} else if err != nil {
-			log.Print(err)
 			ctx.JSON(iris.StatusOK, map[string]string{"error":err.Error()})
 		}        else {
-			ctx.JSON(iris.StatusOK, map[string]string{"cookie":ctx.Session().ID()} )
+			 ctx.Redirect("/secret", 200)
 		}
 	})("register")
 
 	api := iris.Party("/api/")
-
+	api.Get("/", func(ctx *iris.Context) {
+		ctx.Redirect("http://docs.hardteddy.apiary.io")
+	})
 	saveapi := api.Party("/saveapi/")
 	saveapi.Use(filelogger.New("log.txt"))
 	saveapi.Get("*randomName", func(ctx *iris.Context) {
@@ -110,10 +111,9 @@ func main() {
 			}
 			ctx.JSON(iris.StatusOK, errs)
 		} else if err != nil {
-			log.Print(err)
 			ctx.JSON(iris.StatusOK, map[string]string{"error":err.Error()})
 		}        else {
-			ctx.JSON(iris.StatusOK, map[string]string{"cookie":ctx.Session().ID()} )
+			ctx.JSON(iris.StatusOK, map[string]string{"sessionid":ctx.Session().ID()} )
 		}
 	})("api_register")
 
