@@ -12,11 +12,19 @@ type UserStorageEngine interface {
 	Create(string, string, string) (error)
 	Load(string) (NewUser, error)
 	CheckLogin(string, string) (error)
+	CheckIsLogged(string) (error)
 }
 
 type UserStorage struct {
 	Config *Config
 	Engine UserStorageEngine
+}
+
+type RealUser struct {
+	Name string
+	Email string
+	Bears []interface{}
+	Audio []interface{}
 }
 
 type NewUser struct {
@@ -102,4 +110,17 @@ func New(cookiepath string) *UserStorage {
 		SessionCookieName: cookiepath,
 	}
 	return &UserStorage{Config:&config}
+}
+
+func (storage *UserStorage) MustBeLogged(ctx *iris.Context){
+	sid := ctx.GetCookie(storage.Config.SessionCookieName)
+	err := storage.Engine.CheckIsLogged(sid)
+	if err != nil{
+		ctx.JSON(iris.StatusOK, map[string]string{
+			"status":"err",
+			"error":"not logged",
+		})
+	} else {
+		ctx.Next()
+	}
 }

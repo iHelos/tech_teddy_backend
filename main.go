@@ -63,6 +63,11 @@ func main() {
 		ctx.Render("index.html", nil)
 	})
 
+	iris.Get("/profile", userstorage.MustBeLogged, func(ctx *iris.Context){
+		err := userstorage.LoginUser(ctx)
+		log.Print(err)
+	})
+
 	api := iris.Party("/api/")
 	api.Get("/", func(ctx *iris.Context) {
 		ctx.Redirect("http://docs.hardteddy.apiary.io")
@@ -91,9 +96,11 @@ func main() {
 		err := userstorage.CreateUser(ctx)
 		if errors, ok := err.(govalidator.Errors); ok {
 			errs := make(map[string]string)
+			log.Print(errors)
 			for _, msg := range errors {
 				values := strings.Split(msg.Error(), ":")
 				errs[values[0]] = values[1]
+				log.Print(msg)
 			}
 			ctx.JSON(iris.StatusOK, errs)
 		} else if err != nil {
