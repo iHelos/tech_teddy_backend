@@ -16,13 +16,20 @@ type StorageConnection struct {
 
 func (con StorageConnection) Create(name, email, password string) (error) {
 	hashpassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	ans, err := con.Call("createProfile", []interface{}{name, email, hashpassword})
-	log.Print(ans)
-	log.Print(err)
+	_, err := con.Call("createProfile", []interface{}{name, email, hashpassword})
 	return err
 }
 
-func (con StorageConnection) Load(string) (teddyUsers.NewUser, error){
+func (con StorageConnection) Load(sid string) (teddyUsers.NewUser, error){
+	data, err := con.Call("getProfile", []interface{}{sid})
+	if err != nil {
+		return teddyUsers.NewUser{}, err
+	}
+	dataslice := data.Data[0].([]interface{})
+	if len(dataslice) < 4{
+		return teddyUsers.NewUser{}, errors.New("invalid user")
+	} else{}
+
 	return teddyUsers.NewUser{}, nil
 }
 
@@ -47,4 +54,9 @@ func (con StorageConnection) CheckLogin(login, password string) (error){
 		return nil
 	}
 	return errors.New("user invalid")
+}
+
+func (con StorageConnection) CheckIsLogged(sid string) (error){
+	_, err := con.Call("isLogined", []interface{}{sid})
+	return err
 }

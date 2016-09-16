@@ -173,3 +173,14 @@ function createProfile(name, email, password)
     return t
 end
 
+function isLogined(sid)
+    session = box.space.sessions:select{sid}
+    if #session ~= 0 then
+        name = session[1][2]['name']
+        isExists = box.space.profile:count{name}
+        if isExists == 1 then
+            return true
+        end
+        return error("no such user")
+    end
+end
