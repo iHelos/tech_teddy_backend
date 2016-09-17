@@ -56,7 +56,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = "8080"
+		port = "80"
 	}
 
 	iris.Get("/", func(ctx *iris.Context) {
@@ -66,6 +66,16 @@ func main() {
 	iris.Get("/profile", userstorage.MustBeLogged, func(ctx *iris.Context){
 		err := userstorage.LoginUser(ctx)
 		log.Print(err)
+	})
+
+	iris.Get("/story/:id", func(ctx *iris.Context){
+		id := ctx.Param("id")
+		if id == "1"{
+			ctx.SendFile("/audio/music.mp3", "music.mp3")
+		} else {
+			ctx.SendFile("/audio/story.mp3", "story.mp3")
+		}
+
 	})
 
 	api := iris.Party("/api/")
