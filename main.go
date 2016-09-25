@@ -10,18 +10,22 @@ import (
 	"github.com/iHelos/tech_teddy/filelogger"
 	"github.com/iHelos/tech_teddy/teddyUsers"
 	"github.com/iHelos/tech_teddy/teddyUsers/tarantool-user-storage"
+	"github.com/iHelos/tech_teddy/deploy-config"
 )
 
 var userstorage *teddyUsers.UserStorage
+var config *deploy_config.DeployConfiguration
 
 func init() {
-	server := "77.244.214.4:3301"
+	config = deploy_config.GetConfiguration("./deploy.config")
+
+	server := config.Database.Host
 	opts := tarantool.Opts{
 		Timeout:       500 * time.Millisecond,
 		Reconnect:     1 * time.Second,
 		MaxReconnects: 3,
-		User:          "goClient",
-		Pass:          "TeddyTarantoolS1cret",
+		User:          config.Database.User,
+		Pass:          config.Database.Password,
 	}
 
 	client, err := tarantool.Connect(server, opts)
@@ -49,13 +53,11 @@ func init() {
 	//})).Directory("./templates", ".html")
 }
 
-
-
 func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = "8080"
+		port = config.Port
 	}
 	iris.Use(filelogger.New("all.log"))
 	iris.Get("/", func(ctx *iris.Context) {
@@ -90,6 +92,8 @@ func main() {
 
 	})
 
+
+	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
 	apiuser.Use(filelogger.New("userlog.log"))
 	apiuser.Post("/login", func(ctx *iris.Context) {
@@ -112,7 +116,8 @@ func main() {
 
 	apiuser.Post("/logout", func(ctx *iris.Context) {
 		ctx.SessionDestroy()
+		ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(0, map[string]string{"":""}))
 	})
 
-	iris.Listen("127.0.0.1:" + port)
+	iris.Listen(config.Host + ":" + port)
 }
