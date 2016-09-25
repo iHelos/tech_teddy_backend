@@ -38,33 +38,35 @@ HOST: http://hardteddy.ru/
 Ошибки:
 + email:
     + 0 - не прошел валидацию
-+ login 
++ login: 
     + 0 - не прошел валидацию
     + 1 - логин уже существует
-+ password - 
++ password: 
     + 0 - не прошел валидацию
     + 1 - не совпадает с проверочным паролем
++ request:
+    + 0 - невалидный json
 
 
-Пример ответа с сервера:
+Пример ответа с ошибкой:
 
     {
         "body": {
-        "email": [
-            0
-        ],
-        "login": [
-            0
-        ],
-        "password": [
-            0,
-            1
-        ]
-    },
-    "status": 1
+            "email": [
+                0
+                ],
+            "login": [
+                0
+            ],
+            "password": [
+                0,
+                1
+            ]
+        },
+        "status": 1
     }
 
-### Создание пользователя [POST]
+### Пример запроса [POST]
 + Request (application/json)
 
         {
@@ -76,60 +78,46 @@ HOST: http://hardteddy.ru/
 + Response 200 (application/json)
 
             {
-              "sessionid": "ZkFva01uaWhna0p1Q0Jlb1VoV1pQckRhV3VBS3prenI="
-            }
+            "body": {
+            "irissessionid": "akNsSFpOeGZtTnZ4anpQaWhOYlVwSm5HdXpyaG56V08="
+            },
+            "status": 0
+        }
 
 ## Авторизация [/api/user/login]
 Создание пользователя, необходимые поля
-+ name - логин пользователя, <br>
-является уникальным ключем, <br>
-длина от 3 до 16 символов, только символы (латинские) и цифры
-+ email - почта пользователя, <br>
-на почту будет выслано письмо
-+ password1 - пароль,
-принимается пароль, длина которого >= 6 символов
-+ password1 - подтверждение пароля
++ name - логин 
++ password - пароль
 
 Ошибки:
-+ email:
-    + 0 - не прошел валидацию
-+ login 
-    + 0 - не прошел валидацию
-    + 1 - логин уже существует
-+ password - 
-    + 0 - не прошел валидацию
-    + 1 - не совпадает с проверочным паролем
++ request:
+    + 0 - невалидный json
+    + 1 - юзер не найден
 
 
-Пример ответа с сервера:
+Пример ответа с ошибкой:
 
     {
         "body": {
-        "email": [
-            0
-        ],
-        "login": [
-            0
-        ],
-        "password": [
-            0,
-            1
-        ]
-    },
-    "status": 1
+            "request": [
+                1
+            ]
+        },
+        "status": 1
     }
 
-### Создание пользователя [POST]
+### Пример запроса [POST]
 + Request (application/json)
 
         {
             "name": "MyUniqueName", 
-            "email": "email@email.com", 
-            "password1": "password",
             "password2": "password"
         }
 + Response 200 (application/json)
 
-            {
-              "sessionid": "ZkFva01uaWhna0p1Q0Jlb1VoV1pQckRhV3VBS3prenI="
-            }
+        {
+            "body": {
+            "irissessionid": "akNsSFpOeGZtTnZ4anpQaWhOYlVwSm5HdXpyaG56V08="
+            },
+            "status": 0
+        }
