@@ -2,10 +2,10 @@ package teddyUsers
 
 import (
 	"github.com/kataras/iris"
-	"github.com/asaskevich/govalidator"
+
 	"encoding/json"
-	"errors"
-	//	"os/user"
+	"strings"
+	"github.com/tarantool/go-tarantool"
 )
 
 type UserStorageEngine interface {
@@ -20,20 +20,6 @@ type UserStorage struct {
 	Engine UserStorageEngine
 }
 
-type RealUser struct {
-	Name string
-	Email string
-	Bears []interface{}
-	Audio []interface{}
-}
-
-type NewUser struct {
-	Name          string `json:"name" valid:"required" form:"name"`
-	Email         string `json:"email" valid:"required,email" form:"email"`
-	Password      string `json:"password" valid:"required" form:"password"`
-	CheckPassword string `json:"password2" valid:"required" form:"password2"`
-}
-
 func (storage *UserStorage) CreateUser(ctx *iris.Context) (error) {
 	ctx.Request.Body()
 	var user = NewUser{}
@@ -44,22 +30,33 @@ func (storage *UserStorage) CreateUser(ctx *iris.Context) (error) {
 		err = ctx.ReadForm(&user)
 	}
 	if err != nil {
-		return err
+		UserError := NewUserError()
+		UserError.Append("request", 0)
+		return UserError
 	}
+	user.Login = strings.ToLower(user.Login)
 	err = user.check()
 	if err != nil {
 		return err
 	}
-	err = storage.Engine.Create(user.Name, user.Email, user.Password)
+	err = storage.Engine.Create(user.Login, user.Email, user.Password1)
 	if err != nil {
-		return err
+		UserError := NewUserError()
+		if trnerror, ok := err.(tarantool.Error); ok {
+			if trnerror.Code == 32771 {
+				UserError.Append("login", 1)
+				return UserError
+			}
+		}
+		UserError.Append("DB", 0)
+		return UserError
 	}
-	ctx.Session().Set("name", user.Name)
+	ctx.Session().Set("name", user.Login)
 	return nil
 }
 
 type LoginUser struct {
-	Name     string `json:"name" valid:"required" form:"name"`
+	Login    string `json:"name" valid:"required" form:"name"`
 	Password string `json:"password" valid:"required" form:"password"`
 }
 
@@ -73,35 +70,18 @@ func (storage *UserStorage) LoginUser(ctx *iris.Context) (error) {
 		err = ctx.ReadForm(&user)
 	}
 	if err != nil {
-		return err
+		UserError := NewUserError()
+		UserError.Append("request", 0)
+		return UserError
 	}
-
-	err = user.check()
+	user.Login = strings.ToLower(user.Login)
+	err = storage.Engine.CheckLogin(user.Login, user.Password)
 	if err != nil {
-		return err
+		UserError := NewUserError()
+		UserError.Append("request", 1)
+		return UserError
 	}
-
-	err = storage.Engine.CheckLogin(user.Name, user.Password)
-	if err != nil {
-		return err
-	}
-	ctx.Session().Set("name", user.Name)
-	return nil
-}
-
-func (user *NewUser) check() error {
-	if check, err := govalidator.ValidateStruct(user); !check {
-		return err
-	} else if user.Password != user.CheckPassword {
-		return errors.New("passwords mismatch")
-	}
-	return nil
-}
-
-func (user *LoginUser) check() error {
-	if check, err := govalidator.ValidateStruct(user); !check {
-		return err
-	}
+	ctx.Session().Set("name", user.Login)
 	return nil
 }
 
@@ -112,15 +92,24 @@ func New(cookiepath string) *UserStorage {
 	return &UserStorage{Config:&config}
 }
 
-func (storage *UserStorage) MustBeLogged(ctx *iris.Context){
+func (storage *UserStorage) MustBeLogged(ctx *iris.Context) {
 	sid := ctx.GetCookie(storage.Config.SessionCookieName)
 	err := storage.Engine.CheckIsLogged(sid)
-	if err != nil{
-		ctx.JSON(iris.StatusOK, map[string]string{
-			"status":"err",
-			"error":"not logged",
-		})
+	if err != nil {
+		ctx.JSON(iris.StatusOK, GetResponse(
+			1,
+			map[string]int{
+				"loginstatus":0,
+			},
+		))
 	} else {
 		ctx.Next()
 	}
+}
+
+func GetResponse(status int, body interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	result["status"] = status
+	result["body"] = body
+	return result
 }

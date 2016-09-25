@@ -7,12 +7,9 @@ import (
 	"time"
 	"os"
 	"github.com/iHelos/tech_teddy/sessionDB"
-//	"github.com/kataras/go-template/html"
 	"github.com/iHelos/tech_teddy/filelogger"
 	"github.com/iHelos/tech_teddy/teddyUsers"
 	"github.com/iHelos/tech_teddy/teddyUsers/tarantool-user-storage"
-	"github.com/asaskevich/govalidator"
-	"strings"
 )
 
 var userstorage *teddyUsers.UserStorage
@@ -41,7 +38,7 @@ func init() {
 	userstorage.Engine = tarantool_user_storage.StorageConnection{client}
 
 	iris.UseSessionDB(sessionstorage)
-	iris.Config.IsDevelopment = true
+	iris.Config.IsDevelopment = false
 	iris.Config.Gzip = false
 	iris.Config.Charset = "UTF-8"
 	iris.Config.Sessions.DisableSubdomainPersistence = false
@@ -52,13 +49,15 @@ func init() {
 	//})).Directory("./templates", ".html")
 }
 
+
+
 func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = "80"
+		port = "8080"
 	}
-
+	iris.Use(filelogger.New("all.log"))
 	iris.Get("/", func(ctx *iris.Context) {
 		ctx.Render("index.html", nil)
 	})
@@ -96,27 +95,18 @@ func main() {
 	apiuser.Post("/login", func(ctx *iris.Context) {
 		err := userstorage.LoginUser(ctx)
 		if err != nil{
-			ctx.JSON(iris.StatusOK, map[string]string{"error":err.Error()})
+			ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(1, err.(*teddyUsers.UserError).Messages))
 		} else {
-			ctx.JSON(iris.StatusOK, map[string]string{"sessionid":ctx.Session().ID()})
+			ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
 		}
 	})
 
 	apiuser.Post("/register", func(ctx *iris.Context) {
 		err := userstorage.CreateUser(ctx)
-		if errors, ok := err.(govalidator.Errors); ok {
-			errs := make(map[string]string)
-			log.Print(errors)
-			for _, msg := range errors {
-				values := strings.Split(msg.Error(), ":")
-				errs[values[0]] = values[1]
-				log.Print(msg)
-			}
-			ctx.JSON(iris.StatusOK, errs)
-		} else if err != nil {
-			ctx.JSON(iris.StatusOK, map[string]string{"error":err.Error()})
+		if err != nil {
+			ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(1, err.(*teddyUsers.UserError).Messages))
 		}        else {
-			ctx.JSON(iris.StatusOK, map[string]string{"sessionid":ctx.Session().ID()} )
+			ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
 		}
 	})("register")
 
@@ -124,5 +114,5 @@ func main() {
 		ctx.SessionDestroy()
 	})
 
-	iris.Listen(":" + port)
+	iris.Listen("127.0.0.1:" + port)
 }
