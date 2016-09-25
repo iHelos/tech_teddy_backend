@@ -64,6 +64,20 @@ func main() {
 		ctx.Render("index.html", nil)
 	})
 
+	iris.Get("/mock", func(ctx *iris.Context){
+		body := make([]map[string]string, 2)
+		body[0] = map[string]string{
+			"name":"iHelos",
+			"email":"ihelos.ermakov@gmail.com",
+		}
+		body[1] = map[string]string{
+			"name":"AnnJelly",
+			"email":"annjellyiu5@gmail.com",
+		}
+
+		ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(0,body))
+	})
+
 	iris.Get("/profile", userstorage.MustBeLogged, func(ctx *iris.Context){
 		err := userstorage.LoginUser(ctx)
 		log.Print(err)
