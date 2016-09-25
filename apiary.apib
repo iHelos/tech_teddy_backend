@@ -45,50 +45,27 @@ HOST: http://polls.apiblueprint.org/
                 "Name": " non zero value required",
                 "Password": " non zero value required"
             }
-
-# Group Web
-### Create a New Question [POST]
-
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
-
+            
 + Request (application/json)
 
-        {
-            "question": "Favourite programming language?",
-            "choices": [
-                "Swift",
-                "Python",
-                "Objective-C",
-                "Ruby"
-            ]
-        }
-
-+ Response 201 (application/json)
-
-    + Headers
-
-            Location: /questions/2
-
-    + Body
+            name=asdad&email=asd%40asd.asd&password2=asd&password=asd
++ Response 200 (application/json)
 
             {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 0
-                    }, {
-                        "choice": "Python",
-                        "votes": 0
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 0
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 0
-                    }
-                ]
+              "sessionid": "ZkFva01uaWhna0p1Q0Jlb1VoV1pQckRhV3VBS3prenI="
+            }
+
++ Response 200 (application/json)
+
+            {
+                "error": "Duplicate key exists in unique index 'primary' in space 'profile' (0x8003)"
+            }
+
++ Response 200 (application/json)
+
+            {
+                "CheckPassword": " non zero value required",
+                "Email": " email does not validate as email"
+                "Name": " non zero value required",
+                "Password": " non zero value required"
             }
