@@ -203,10 +203,10 @@
       <root url="file://$PROJECT_DIR$/../../iris-contrib/formBinder/.git" />
       <root url="file://$PROJECT_DIR$/../../mattn/go-colorable/.git" />
       <root url="file://$PROJECT_DIR$/../../asaskevich/govalidator/.git" />
+      <root url="file://$PROJECT_DIR$/../../rakyll/hey/.git" />
       <root url="file://$PROJECT_DIR$/../../../cloud.google.com/go/.git" />
       <root url="file://$PROJECT_DIR$/../../../google.golang.org/api/.git" />
       <root url="file://$PROJECT_DIR$/../../../cloud.google.com/go/vision/testdata" />
-      <root url="file://$PROJECT_DIR$/../../rakyll/hey/.git" />
       <root url="file://$PROJECT_DIR$/../../../google.golang.org/api/google-api-go-generator/testdata" />
       <root url="file://$PROJECT_DIR$/../../../cloud.google.com/go/storage/testdata" />
       <root url="file://$PROJECT_DIR$/../../../cloud.google.com/go/bigtable/testdata" />
