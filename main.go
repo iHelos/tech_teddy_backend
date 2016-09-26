@@ -6,11 +6,12 @@ import (
 	"log"
 	"time"
 	"os"
-	"github.com/iHelos/tech_teddy/sessionDB"
-	"github.com/iHelos/tech_teddy/filelogger"
-	"github.com/iHelos/tech_teddy/teddyUsers"
-	"github.com/iHelos/tech_teddy/teddyUsers/tarantool-user-storage"
+	sessionDB "github.com/iHelos/tech_teddy/models/session"
+	"github.com/iHelos/tech_teddy/helper/filelogger"
+	teddyUsers "github.com/iHelos/tech_teddy/models/user"
+	"github.com/iHelos/tech_teddy/models/user/tarantool-user-storage"
 	"github.com/iHelos/tech_teddy/deploy-config"
+	"github.com/iHelos/tech_teddy/helper/REST"
 )
 
 var userstorage *teddyUsers.UserStorage
@@ -46,7 +47,7 @@ func init() {
 	iris.Config.Gzip = false
 	iris.Config.Charset = "UTF-8"
 	iris.Config.Sessions.DisableSubdomainPersistence = false
-	iris.StaticServe("./static")
+	iris.StaticServe("./static/web_files", "/static")
 
 	//iris.UseTemplate(html.New(html.Config{
 	//	Layout: "layout.html",
@@ -59,7 +60,7 @@ func main() {
 	if port == "" {
 		port = config.Port
 	}
-	iris.Use(filelogger.New("all.log"))
+	iris.Use(filelogger.New("logs/all.log"))
 	iris.Get("/", func(ctx *iris.Context) {
 		ctx.Render("index.html", nil)
 	})
@@ -75,7 +76,7 @@ func main() {
 			"email":"annjellyiu5@gmail.com",
 		}
 
-		ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(0,body))
+		ctx.JSON(iris.StatusOK, REST.GetResponse(0,body))
 	})
 
 	iris.Get("/profile", userstorage.MustBeLogged, func(ctx *iris.Context){
@@ -86,9 +87,9 @@ func main() {
 	iris.Get("/story/:id", func(ctx *iris.Context){
 		id := ctx.Param("id")
 		if id == "1"{
-			ctx.SendFile("/audio/music.mp3", "music.mp3")
+			ctx.SendFile("./static/audio/music.mp3", "music.mp3")
 		} else {
-			ctx.SendFile("/audio/story.mp3", "story.mp3")
+			ctx.SendFile("./static/audio/story.mp3", "story.mp3")
 		}
 
 	})
@@ -98,7 +99,7 @@ func main() {
 		ctx.Redirect("http://docs.hardteddy.apiary.io")
 	})
 	saveapi := api.Party("/saveapi/")
-	saveapi.Use(filelogger.New("log.log"))
+	saveapi.Use(filelogger.New("logs/log.log"))
 	saveapi.Get("*randomName", func(ctx *iris.Context) {
 
 	})
@@ -109,28 +110,28 @@ func main() {
 
 	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
-	apiuser.Use(filelogger.New("userlog.log"))
+	apiuser.Use(filelogger.New("logs/userlog.log"))
 	apiuser.Post("/login", func(ctx *iris.Context) {
 		err := userstorage.LoginUser(ctx)
 		if err != nil{
-			ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(1, err.(*teddyUsers.UserError).Messages))
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
 		} else {
-			ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
 		}
 	})
 
 	apiuser.Post("/register", func(ctx *iris.Context) {
 		err := userstorage.CreateUser(ctx)
 		if err != nil {
-			ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(1, err.(*teddyUsers.UserError).Messages))
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
 		}        else {
-			ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
 		}
 	})("register")
 
 	apiuser.Post("/logout", func(ctx *iris.Context) {
 		ctx.SessionDestroy()
-		ctx.JSON(iris.StatusOK, teddyUsers.GetResponse(0, map[string]string{"":""}))
+		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"":""}))
 	})
 
 	iris.Listen(config.Host + ":" + port)
