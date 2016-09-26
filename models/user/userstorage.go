@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"strings"
 	"github.com/tarantool/go-tarantool"
+	"github.com/iHelos/tech_teddy/helper/REST"
 )
 
 type UserStorageEngine interface {
@@ -96,7 +97,7 @@ func (storage *UserStorage) MustBeLogged(ctx *iris.Context) {
 	sid := ctx.GetCookie(storage.Config.SessionCookieName)
 	err := storage.Engine.CheckIsLogged(sid)
 	if err != nil {
-		ctx.JSON(iris.StatusOK, GetResponse(
+		ctx.JSON(iris.StatusOK, REST.GetResponse(
 			1,
 			map[string]int{
 				"loginstatus":0,
@@ -105,11 +106,4 @@ func (storage *UserStorage) MustBeLogged(ctx *iris.Context) {
 	} else {
 		ctx.Next()
 	}
-}
-
-func GetResponse(status int, body interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	result["status"] = status
-	result["body"] = body
-	return result
 }

@@ -1,7 +1,7 @@
 package tarantool_user_storage
 
 import (
-	"github.com/iHelos/tech_teddy/teddyUsers"
+	teddyUsers "github.com/iHelos/tech_teddy/models/user"
 	"github.com/tarantool/go-tarantool"
 	"log"
 
