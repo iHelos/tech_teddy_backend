@@ -1,4 +1,4 @@
-package teddyUsers
+package user
 
 import (
 	"github.com/kataras/iris"

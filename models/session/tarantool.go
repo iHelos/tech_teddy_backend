@@ -1,4 +1,4 @@
-package sessionDB
+package session
 
 import (
 	"github.com/tarantool/go-tarantool"

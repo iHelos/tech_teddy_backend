@@ -1,4 +1,4 @@
-package teddyUsers
+package user
 
 import (
 	"testing"
@@ -16,8 +16,7 @@ func TestLoginInvalid(t *testing.T) {
 		Password2:"password",
 	}
 	err := user.check()
-	t.Log(err)
-	if err == nil{
+	if err.(*UserError).Messages["login"]==nil{
 		t.Errorf("User Login error checking working bad")
 	}
 }

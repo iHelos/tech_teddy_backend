@@ -1,4 +1,4 @@
-package teddyUsers
+package user
 
 import "encoding/json"
 

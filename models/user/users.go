@@ -1,4 +1,4 @@
-package teddyUsers
+package user
 
 type User struct  {
 	Login string `json:"name" form:"name"`
