@@ -27,6 +27,7 @@ func (connection SessionConnection) Load(sid string) map[string]interface{} {
 }
 
 func hello(){
+	print("wow")
 	print("hello")
 }
 
