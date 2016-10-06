@@ -25,11 +25,7 @@ func (storage *UserStorage) CreateUser(ctx *iris.Context) (error) {
 	ctx.Request.Body()
 	var user = NewUser{}
 	var err error
-	if string(ctx.Request.Header.ContentType()) == "application/json" {
-		err = json.Unmarshal(ctx.Request.Body(), &user)
-	} else {
-		err = ctx.ReadForm(&user)
-	}
+	err = json.Unmarshal(ctx.Request.Body(), &user)
 	if err != nil {
 		UserError := NewUserError()
 		UserError.Append("request", 0)
@@ -65,11 +61,7 @@ func (storage *UserStorage) LoginUser(ctx *iris.Context) (error) {
 	ctx.Request.Body()
 	var user LoginUser
 	var err error
-	if string(ctx.Request.Header.ContentType()) == "application/json" {
-		err = json.Unmarshal(ctx.Request.Body(), &user)
-	} else {
-		err = ctx.ReadForm(&user)
-	}
+	err = json.Unmarshal(ctx.Request.Body(), &user)
 	if err != nil {
 		UserError := NewUserError()
 		UserError.Append("request", 0)

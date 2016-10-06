@@ -12,6 +12,7 @@ import (
 	"github.com/iHelos/tech_teddy/models/user/tarantool-user-storage"
 	"github.com/iHelos/tech_teddy/deploy-config"
 	"github.com/iHelos/tech_teddy/helper/REST"
+	"github.com/iris-contrib/middleware/cors"
 )
 
 var userstorage *teddyUsers.UserStorage
@@ -41,6 +42,12 @@ func init() {
 	sessionstorage := sessionDB.SessionConnection{client}
 	userstorage = teddyUsers.New(iris.Config.Sessions.Cookie)
 	userstorage.Engine = tarantool_user_storage.StorageConnection{client}
+
+
+	crs := cors.Default()
+	iris.Use(crs)
+	//iris.Get("/", myHandler)
+	//iris.Listen(*port)
 
 	iris.UseSessionDB(sessionstorage)
 	iris.Config.IsDevelopment = false
