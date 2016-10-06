@@ -26,10 +26,6 @@ func (connection SessionConnection) Load(sid string) map[string]interface{} {
 
 }
 
-func hello(){
-	print("hello")
-}
-
 func (connection SessionConnection) Update(sid string, newValues map[string]interface{}) {
 	if len(newValues) == 0 {
 		connection.Delete("sessions", "primary", []interface{}{sid})
