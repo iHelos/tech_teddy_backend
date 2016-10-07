@@ -5,6 +5,7 @@ type User struct  {
 	Email string `json:"email" form:"email"`
 	Bears []interface{}
 	Audio []interface{}
+	FCMToken string `json:"fcm"`
 }
 
 type NewUser struct  {
