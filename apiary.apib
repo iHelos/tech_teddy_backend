@@ -200,3 +200,54 @@ order types:
             },
             "status": 0
         }
+## Покупка сказки [/api/store/story/buy]
+Получить все категории сказок
+
+### Пример запроса [POST]
++ Request (application/json)
+
+        {
+            "storyid": 1
+        }
++ Response 200 (application/json)
+
+        {
+            "body": {
+                
+            },
+            "status": 0
+        }
+        
+## Категории сказок [/api/user/mystories]
+Получить сказки пользователя
+
+### Пример запроса [GET]
++ Request (application/json)
+
++ Response 200 (application/json)
+
+        {
+            "body": {
+                "stories":[
+                    {
+                        "name": "Story1",
+                        "description": "Story1 awesome description",
+                        "author": "iHelos",
+                        "id": 1,
+                        "minutes":"46",
+                        "seconds":"24",
+                        "price": 15
+                    },
+                    {
+                        "name": "Story2",
+                        "description": "Story2 awesome description",
+                        "author": "AnnJelly",
+                        "id": 2,
+                        "minutes":"72",
+                        "seconds":"11",
+                        "price": 25
+                    }
+                ]
+            },
+            "status":0
+        }
