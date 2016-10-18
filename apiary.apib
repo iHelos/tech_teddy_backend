@@ -135,3 +135,68 @@ HOST: http://hardteddy.ru/
             },
             "status": 0
         }
+
+## Категории сказок [/api/store/category/getall]
+Получить все категории сказок
+
+### Пример запроса [GET]
++ Request (application/json)
+
++ Response 200 (application/json)
+
+        {
+            "body": {
+                "categories":[
+                    {
+                        "name":"Категория1",
+                        "id":1 
+                    },
+                    {
+                        "name":"Категория2",
+                        "id":2
+                    }
+                ]
+            },
+            "status": 0
+        }
+
+## Магазин [/api/store/story/cat={cat}&page={page}&order={order}]
+Получить все категории сказок
+cat - [OPTIONAL] default - ALL
+page - [OPTIONAL] default - 0
+order - [OPTIONAL] default - name
+
+order types:
+- name
+- duration
+- price
+### Пример запроса [GET]
++ Request (application/json)
+
++ Response 200 (application/json)
+
+        {
+            "body": {
+                "stories":[
+                    {
+                        "name": "Story1",
+                        "description": "Story1 awesome description",
+                        "author": "iHelos",
+                        "id": 1,
+                        "minutes":"46",
+                        "seconds":"24",
+                        "price": 15
+                    },
+                    {
+                        "name": "Story2",
+                        "description": "Story2 awesome description",
+                        "author": "AnnJelly",
+                        "id": 2,
+                        "minutes":"72",
+                        "seconds":"11",
+                        "price": 25
+                    }
+                ]
+            },
+            "status": 0
+        }
