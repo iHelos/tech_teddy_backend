@@ -9,6 +9,7 @@ import (
 	sessionDB "github.com/iHelos/tech_teddy/models/session"
 	"github.com/iHelos/tech_teddy/helper/filelogger"
 	teddyUsers "github.com/iHelos/tech_teddy/models/user"
+	"github.com/iHelos/tech_teddy/models/story"
 	"github.com/iHelos/tech_teddy/models/user/tarantool-user-storage"
 	"github.com/iHelos/tech_teddy/deploy-config"
 	"github.com/iHelos/tech_teddy/helper/REST"
@@ -39,11 +40,11 @@ func init() {
 	log.Println(err)
 
 	sessionstorage := sessionDB.SessionConnection{client}
+
 	userstorage = teddyUsers.New(iris.Config.Sessions.Cookie)
 	userstorage.Engine = tarantool_user_storage.StorageConnection{client}
-
-
 	iris.UseSessionDB(sessionstorage)
+
 	iris.Config.IsDevelopment = false
 	iris.Config.Gzip = false
 	iris.Config.Charset = "UTF-8"
@@ -66,7 +67,7 @@ func main() {
 		ctx.Render("index.html", nil)
 	})
 
-	iris.Get("/mock", func(ctx *iris.Context){
+	iris.Get("/mock", func(ctx *iris.Context) {
 		body := make([]map[string]string, 2)
 		body[0] = map[string]string{
 			"name":"iHelos",
@@ -77,17 +78,17 @@ func main() {
 			"email":"annjellyiu5@gmail.com",
 		}
 
-		ctx.JSON(iris.StatusOK, REST.GetResponse(0,body))
+		ctx.JSON(iris.StatusOK, REST.GetResponse(0, body))
 	})
 
-	iris.Get("/profile", userstorage.MustBeLogged, func(ctx *iris.Context){
+	iris.Get("/profile", userstorage.MustBeLogged, func(ctx *iris.Context) {
 		err := userstorage.LoginUser(ctx)
 		log.Print(err)
 	})
 
-	iris.Get("/story/:id", func(ctx *iris.Context){
+	iris.Get("/story/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
-		if id == "1"{
+		if id == "1" {
 			ctx.SendFile("./static/audio/music.mp3", "music.mp3")
 		} else {
 			ctx.SendFile("./static/audio/story.mp3", "story.mp3")
@@ -108,13 +109,24 @@ func main() {
 
 	})
 
+	api.Get("/allstories", func(ctx *iris.Context) {
+		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
+			"stories":story.GetAllStories(),
+		}))
+	})
+
+	api.Get("/mystories", func(ctx *iris.Context) {
+		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
+			"stories":story.GetMyStories(),
+		}))
+	})
 
 	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
 	apiuser.Use(filelogger.New("logs/userlog.log"))
 	apiuser.Post("/login", func(ctx *iris.Context) {
 		err := userstorage.LoginUser(ctx)
-		if err != nil{
+		if err != nil {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
 		} else {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
