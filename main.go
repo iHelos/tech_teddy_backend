@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 	"os"
-	sessionDB "github.com/iHelos/tech_teddy/models/session"
+	//sessionDB "github.com/iHelos/tech_teddy/models/session"
 	"github.com/iHelos/tech_teddy/helper/filelogger"
 	teddyUsers "github.com/iHelos/tech_teddy/models/user"
 	"github.com/iHelos/tech_teddy/models/story"
@@ -39,11 +39,11 @@ func init() {
 	log.Println(resp.Data)
 	log.Println(err)
 
-	sessionstorage := sessionDB.SessionConnection{client}
+	//sessionstorage := sessionDB.SessionConnection{client}
 
 	userstorage = teddyUsers.New(iris.Config.Sessions.Cookie)
 	userstorage.Engine = tarantool_user_storage.StorageConnection{client}
-	iris.UseSessionDB(sessionstorage)
+	//iris.UseSessionDB(sessionstorage)
 
 	iris.Config.IsDevelopment = false
 	iris.Config.Gzip = false
@@ -82,8 +82,7 @@ func main() {
 	})
 
 	iris.Get("/profile", userstorage.MustBeLogged, func(ctx *iris.Context) {
-		err := userstorage.LoginUser(ctx)
-		log.Print(err)
+
 	})
 
 	iris.Get("/story/:id", func(ctx *iris.Context) {
@@ -125,20 +124,26 @@ func main() {
 	apiuser := api.Party("/user/")
 	apiuser.Use(filelogger.New("logs/userlog.log"))
 	apiuser.Post("/login", func(ctx *iris.Context) {
-		err := userstorage.LoginUser(ctx)
+		userToken, bearToken, err := userstorage.LoginUser(ctx)
 		if err != nil {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
 		} else {
-			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{
+				"userToken":userToken,
+				"bearToken":bearToken,
+			}))
 		}
 	})
 
 	apiuser.Post("/register", func(ctx *iris.Context) {
-		err := userstorage.CreateUser(ctx)
+		userToken, bearToken, err := userstorage.CreateUser(ctx)
 		if err != nil {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
 		}        else {
-			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{
+				"userToken":userToken,
+				"bearToken":bearToken,
+			}))
 		}
 	})("register")
 
