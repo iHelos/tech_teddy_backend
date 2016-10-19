@@ -9,14 +9,18 @@ import (
 	//sessionDB "github.com/iHelos/tech_teddy/models/session"
 	"github.com/iHelos/tech_teddy/helper/filelogger"
 	teddyUsers "github.com/iHelos/tech_teddy/models/user"
-	"github.com/iHelos/tech_teddy/models/story"
 	"github.com/iHelos/tech_teddy/models/user/tarantool-user-storage"
+	teddyStory"github.com/iHelos/tech_teddy/models/story"
+	"github.com/iHelos/tech_teddy/models/story/tarantool-story-storage"
 	"github.com/iHelos/tech_teddy/deploy-config"
 	"github.com/iHelos/tech_teddy/helper/REST"
 	"github.com/iris-contrib/middleware/cors"
+	"github.com/iris-contrib/middleware/recovery"
+	"github.com/iHelos/tech_teddy/views/store"
 )
 
 var userstorage *teddyUsers.UserStorage
+var storystorage teddyStory.StoryStorageEngine
 var config *deploy_config.DeployConfiguration
 func init() {
 	config = deploy_config.GetConfiguration("./deploy.config")
@@ -40,12 +44,13 @@ func init() {
 	log.Println(err)
 
 	//sessionstorage := sessionDB.SessionConnection{client}
-
+	//TODO remake userStorage
 	userstorage = teddyUsers.New(iris.Config.Sessions.Cookie)
 	userstorage.Engine = tarantool_user_storage.StorageConnection{client}
+	storystorage = tarantool_story_storage.StorageConnection{client}
 	//iris.UseSessionDB(sessionstorage)
 
-
+	iris.Use(recovery.New())
 	iris.Config.IsDevelopment = false
 	iris.Config.Gzip = false
 	iris.Config.Charset = "UTF-8"
@@ -77,6 +82,7 @@ func main() {
 
 	iris.Use(cors_obj)
 	iris.Use(filelogger.New("logs/all.log"))
+
 	iris.Get("/", func(ctx *iris.Context) {
 		ctx.Render("index.html", nil)
 	})
@@ -113,26 +119,13 @@ func main() {
 	api.Get("/", func(ctx *iris.Context) {
 		ctx.Redirect("http://docs.hardteddy.apiary.io")
 	})
-	saveapi := api.Party("/saveapi/")
-	saveapi.Use(filelogger.New("logs/log.log"))
-	saveapi.Get("*randomName", func(ctx *iris.Context) {
-
-	})
-	saveapi.Post("*randomName", func(ctx *iris.Context) {
-
-	})
 
 	api.Get("/allstories", func(ctx *iris.Context) {
 		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
-			"stories":story.GetAllStories(),
+
 		}))
 	})
 
-	api.Get("/mystories", func(ctx *iris.Context) {
-		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
-			"stories":story.GetMyStories(),
-		}))
-	})
 
 	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
@@ -148,6 +141,20 @@ func main() {
 				"bearToken":bearToken,
 			}))
 		}
+	})
+
+	apiuser.Get("/mystories", func(ctx *iris.Context) {
+		stories, err := store.GetMyStories(ctx, &storystorage)
+		if (err!=nil) {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
+				"err":err.Error(),
+			}))
+		}else{
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
+				"stories":stories,
+			}))
+		}
+
 	})
 
 	apiuser.Any("/register", func(ctx *iris.Context) {

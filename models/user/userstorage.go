@@ -118,29 +118,30 @@ func New(cookiepath string) *UserStorage {
 	return &UserStorage{Config:&config}
 }
 
-func (storage *UserStorage) MustBeLogged(ctx *iris.Context) {
-
+func GetLogin(ctx *iris.Context) (string, error){
 	signedtoken := ctx.Request.Header.Peek("Authorization")
 	token, err := jwt.Parse(string(signedtoken), func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return "", fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(hmacUserSecret), nil
 	})
 	if (err!=nil){
-		ctx.JSON(iris.StatusOK, REST.GetResponse(
-			1,
-			map[string]int{
-				"loginstatus":0,
-			},
-		))
-		return
+		return "", err
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Println(claims["login"])
+		if login, ok := claims["login"].(string); ok {
+			return login, nil
+		} else {
+			return "", err
+		}
 	} else {
-		fmt.Println(err)
+		return "",err
 	}
+}
+
+func (storage *UserStorage) MustBeLogged(ctx *iris.Context) {
+	_,err := GetLogin(ctx)
 	if err != nil {
 		ctx.JSON(iris.StatusOK, REST.GetResponse(
 			1,
