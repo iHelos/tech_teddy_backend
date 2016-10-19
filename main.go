@@ -13,11 +13,11 @@ import (
 	"github.com/iHelos/tech_teddy/models/user/tarantool-user-storage"
 	"github.com/iHelos/tech_teddy/deploy-config"
 	"github.com/iHelos/tech_teddy/helper/REST"
+	"github.com/iris-contrib/middleware/cors"
 )
 
 var userstorage *teddyUsers.UserStorage
 var config *deploy_config.DeployConfiguration
-
 func init() {
 	config = deploy_config.GetConfiguration("./deploy.config")
 
@@ -45,6 +45,7 @@ func init() {
 	userstorage.Engine = tarantool_user_storage.StorageConnection{client}
 	//iris.UseSessionDB(sessionstorage)
 
+
 	iris.Config.IsDevelopment = false
 	iris.Config.Gzip = false
 	iris.Config.Charset = "UTF-8"
@@ -62,6 +63,19 @@ func main() {
 	if port == "" {
 		port = config.Port
 	}
+
+
+	cors_config := cors.Options{
+		AllowedOrigins:[]string{"*"},
+		AllowedMethods:[]string{"GET", "POST", "OPTIONS", ""},
+		AllowCredentials:true,
+		MaxAge:5,
+		Debug:false,
+	}
+
+	cors_obj := cors.New(cors_config)
+
+	iris.Use(cors_obj)
 	iris.Use(filelogger.New("logs/all.log"))
 	iris.Get("/", func(ctx *iris.Context) {
 		ctx.Render("index.html", nil)
@@ -123,9 +137,10 @@ func main() {
 	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
 	apiuser.Use(filelogger.New("logs/userlog.log"))
-	apiuser.Post("/login", func(ctx *iris.Context) {
+	apiuser.Any("/login",  func(ctx *iris.Context) {
 		userToken, bearToken, err := userstorage.LoginUser(ctx)
 		if err != nil {
+
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
 		} else {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{
@@ -135,7 +150,7 @@ func main() {
 		}
 	})
 
-	apiuser.Post("/register", func(ctx *iris.Context) {
+	apiuser.Any("/register", func(ctx *iris.Context) {
 		userToken, bearToken, err := userstorage.CreateUser(ctx)
 		if err != nil {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
@@ -145,14 +160,14 @@ func main() {
 				"bearToken":bearToken,
 			}))
 		}
-	})("register")
+	})
 
 	apiuser.Get("/sendall", func(ctx *iris.Context) {
 		teddyUsers.SendAll()
 		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"":""}))
 	})
 
-	apiuser.Post("/logout", func(ctx *iris.Context) {
+	apiuser.Any("/logout", func(ctx *iris.Context) {
 		ctx.SessionDestroy()
 		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"":""}))
 	})
