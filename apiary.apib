@@ -136,6 +136,8 @@ HOST: http://hardteddy.ru/
             "status": 0
         }
 
+
+##Group Сказки
 ## Категории сказок [/api/store/category/getall]
 Получить все категории сказок
 
@@ -161,15 +163,21 @@ HOST: http://hardteddy.ru/
         }
 
 ## Магазин [/api/store/story/cat={cat}&page={page}&order={order}]
-Получить все категории сказок
+Получить все сказки определенной категории
 cat - [OPTIONAL] default - ALL
 page - [OPTIONAL] default - 0
 order - [OPTIONAL] default - name
+ot - [OPTIONAL] default - desc
 
-order types:
+order by:
 - name
 - duration
 - price
+
+ot:
+- desc по убыванию
+- asc по возрастанию
+
 ### Пример запроса [GET]
 + Request (application/json)
 
@@ -201,7 +209,7 @@ order types:
             "status": 0
         }
 ## Покупка сказки [/api/store/story/buy]
-Получить все категории сказок
+Добавление сказки в плейлист пользователя
 
 ### Пример запроса [POST]
 + Request (application/json)
@@ -218,7 +226,7 @@ order types:
             "status": 0
         }
         
-## Категории сказок [/api/user/mystories]
+## Сказки пользователя [/api/user/mystories]
 Получить сказки пользователя
 
 ### Пример запроса [GET]
