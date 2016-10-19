@@ -1,30 +1,11 @@
-<!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <script src="static/js/jquery.js"></script>
-</head>
+<title>Go upload</title>
+<body>
 
-<!-- multistep form -->
-<form id="myForm"  enctype='application/json' method="POST" action='{{url "register"}}'>
-<br>
-    <label>
-        Имя:
-        <input type="text" name="name" size="40">
-    </label> <br>
-    <label>
-        Почта:
-        <input type="email" name="email">
-    </label> <br>
-    <label>
-        Пароль:
-        <input type="password" name="password1">
-    </label> <br>
-    <label>
-        Подтверждение пароля:
-        <input type="password" name="password2">
-    </label> <br>
-   <input type="submit">
+<form action="http://localhost.com:8080/receive" method="post" enctype="multipart/form-data">
+    <label for="file">Filename:</label>
+    <input type="file" name="file" id="file">
+    <input type="submit" name="submit" value="Submit">
 </form>
 
 </body>

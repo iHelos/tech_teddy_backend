@@ -128,17 +128,29 @@ box.cfg {
 
 local function bootstrap()
     local space = box.schema.create_space('sessions')
-    space:create_index('primary', { type = 'hash', parts = { 1, 'string' } })
+    space:create_index('primary', {type = 'hash', parts = { 1, 'string'}})
+    -- name, email, password, audios, bears
     local profilespace = box.schema.create_space('profile')
-    profilespace:create_index('primary', { type = 'hash', parts = { 1, 'string' } })
+    profilespace:create_index('primary', {type = 'hash', parts = {1, 'string'}})
+    --
     local toyspace = box.schema.create_space('toy')
-    toyspace:create_index('primary', { type = 'hash', parts = { 1, 'unsigned' } })
+    toyspace:create_index('primary', {type = 'hash', parts = {1, 'unsigned'}})
+    --id, category, name, price, duration, descriprion, author
     local audiospace = box.schema.create_space('audio')
-    audiospace:create_index('primary', { type = 'hash', parts = { 1, 'unsigned' } })
-
+    audiospace:create_index('primary', {type = 'hash', parts = {1, 'unsigned'}})
+    audiospace:create_index('cat_name', {type='tree',unique=true, parts = {2,'unsigned',3,'string'}})
+    audiospace:create_index('cat_price_name', {type='tree',unique=true, parts = {2,'unsigned',4,'unsigned',3,'string'}})
+    audiospace:create_index('cat_duration_name', {type='tree',unique=true, parts = {2,'unsigned',5,'string',3,'string'}})
+    audiospace:create_index('name', {type='tree',unique=true, parts = {3,'string'}})
+    audiospace:create_index('price_name', {type='tree',unique=true, parts = {4,'unsigned',3,'string'}})
+    audiospace:create_index('duration_name', {type='tree',unique=true, parts = {5,'string',3,'string'}})
     box.schema.func.create('getProfile')
     box.schema.func.create('createProfile')
-
+    box.schema.func.create('isLogined')
+    box.schema.func.create('getAllStories')
+    box.schema.func.create('getAllCategoryStories')
+    box.schema.func.create('getUserStories')
+    box.schema.func.create('buyStory')
     -- Comment this if you need fine grained access control (without it, guest
     -- will have access to everything)
     -- box.schema.user.grant('goClient', 'read,write,execute', 'universe')
@@ -152,6 +164,11 @@ local function bootstrap()
     box.schema.user.grant('goClient', 'read,write,execute', 'space', 'audio')
     box.schema.user.grant('goClient', 'execute', 'function', 'getProfile')
     box.schema.user.grant('goClient', 'execute', 'function', 'createProfile')
+    box.schema.user.grant('goClient', 'execute', 'function', 'isLogined')
+    box.schema.user.grant('goClient', 'execute', 'function', 'getAllStories')
+    box.schema.user.grant('goClient', 'execute', 'function', 'getAllCategoryStories')
+    box.schema.user.grant('goClient', 'execute', 'function', 'getUserStories')
+    box.schema.user.grant('goClient', 'execute', 'function', 'buyStory')
 end
 
 -- for first run create a space and add set up grants
@@ -184,3 +201,62 @@ function isLogined(sid)
         return error("no such user")
     end
 end
+
+function getAllStories(offset, limit, order, ordertype)
+    if ordertype == 1 then
+        localiterat = box.index.GE
+    else
+        localiterat = box.index.LE
+    end
+    if order == 0 then
+        stories = box.space.audio.index.name:select({},{iterator=localiterat, offset=offset, limit=limit})
+    elseif order == 1 then
+        stories = box.space.audio.index.price_name:select({},{iterator=localiterat, offset=offset, limit=limit})
+    elseif order == 2 then
+        stories = box.space.audio.index.duration_name:select({},{iterator=localiterat, offset=offset, limit=limit})
+    end
+    return stories
+end
+
+function getAllCategoryStories(category, offset, limit, order, ordertype)
+    if ordertype == 1 then
+        localiterat = box.index.EQ
+    else
+        localiterat = box.index.REQ
+    end
+    if order == 0 then
+        stories = box.space.audio.index.cat_name:select({category},{iterator=localiterat, offset=offset, limit=limit})
+    elseif order == 1 then
+        stories = box.space.audio.index.cat_price_name:select({category},{iterator=localiterat, offset=offset, limit=limit})
+    elseif order == 2 then
+        stories = box.space.audio.index.cat_duration_name:select({category},{iterator=localiterat, offset=offset, limit=limit})
+    end
+    return stories
+end
+
+function getUserStories(userLogin)
+    user = box.space.profile:get{userLogin}
+    stories = {}
+    for i, v in ipairs(user[4]) do
+        tempstory = box.space.audio:select{v}
+        table.insert(stories,tempstory)
+    end
+    return stories
+end
+
+function buyStory(userLogin, storyid)
+    user = box.space.profile:get{userLogin}
+    story = box.space.audio:get{storyid}
+    if user == nil then
+        return error("no such user")
+    end
+    if story == nil then
+        return error("no such story")
+    end
+    stories = user[4]
+    table.insert(stories, storyid)
+    table.sort(stories)
+    box.space.profile:update(userLogin, {{'=', 4, stories}})
+    return stories
+end
+
