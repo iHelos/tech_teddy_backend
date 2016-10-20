@@ -22,8 +22,8 @@ const (
 )
 
 var order_types map[string]int = map[string]int{
-	"desc":1,
-	"asc":0,
+	"desc":0,
+	"asc":1,
 }
 var orders map[string]int = map[string]int{
 	"name":0,
@@ -46,7 +46,7 @@ func (con StorageConnection) GetAllByCategory(order string, order_type string, p
 	offset := limit * page
 	var order_code int = orders[order]
 	var order_type_code int = order_types[order_type]
-	answer, err := con.Call("getAllStories", []interface{}{category, offset, limit, order_code, order_type_code })
+	answer, err := con.Call("getAllCategoryStories", []interface{}{category, offset, limit, order_code, order_type_code })
 	stories, err := DeserializeStoryArray(answer)
 	return stories, err
 }
