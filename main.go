@@ -110,10 +110,10 @@ func main() {
 		switch id {
 		case "1": ctx.SendFile("./static/audio/music.mp3", "music.mp3");
 		case "2": ctx.SendFile("./static/audio/music.mp3", "music.mp3");
-		case "3": ctx.SendFile("./static/audio/k_r.raw", "k_r.raw");
-		case "4": ctx.SendFile("./static/audio/m_i_m.raw", "m_i_m.raw");
-		case "5": ctx.SendFile("./static/audio/tale.raw", "tale.raw");
-		default:  ctx.SendFile("./static/audio/k_r.raw", "k_r.raw");
+		case "3": ctx.SendFile("./static/audio/k_r.raw", "3.raw");
+		case "4": ctx.SendFile("./static/audio/m_i_m.raw", "4.raw");
+		case "5": ctx.SendFile("./static/audio/tale.raw", "5.raw");
+		default:  ctx.SendFile("./static/audio/k_r.raw", "3.raw");
 		}
 	})
 
