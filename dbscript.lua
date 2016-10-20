@@ -238,7 +238,7 @@ function getUserStories(userLogin)
     user = box.space.profile:get{userLogin}
     stories = {}
     for i, v in ipairs(user[4]) do
-        tempstory = box.space.audio:select{v}
+        tempstory = box.space.audio:get{v}
         table.insert(stories,tempstory)
     end
     return stories

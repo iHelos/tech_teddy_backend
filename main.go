@@ -120,12 +120,6 @@ func main() {
 		ctx.Redirect("http://docs.hardteddy.apiary.io")
 	})
 
-	api.Get("/allstories", func(ctx *iris.Context) {
-		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
-
-		}))
-	})
-
 
 	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
@@ -143,7 +137,7 @@ func main() {
 		}
 	})
 
-	apiuser.Get("/mystories", func(ctx *iris.Context) {
+	apiuser.Get("/mystories", userstorage.MustBeLogged, func(ctx *iris.Context) {
 		stories, err := store.GetMyStories(ctx, &storystorage)
 		if (err!=nil) {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
@@ -177,6 +171,21 @@ func main() {
 	apiuser.Any("/logout", func(ctx *iris.Context) {
 		ctx.SessionDestroy()
 		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"":""}))
+	})
+
+
+	apistore := api.Party("/store/")
+	apistore.Get("/stories", func(ctx *iris.Context) {
+		stories, err := store.GetAllStories(ctx, &storystorage)
+		if (err!=nil) {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
+				"err":err.Error(),
+			}))
+		}else{
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
+				"stories":stories,
+			}))
+		}
 	})
 
 	iris.Listen(config.Host + ":" + port)
