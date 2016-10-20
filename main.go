@@ -176,8 +176,8 @@ func main() {
 	})
 
 	apistore := api.Party("/store/")
-	apistore.Get("/stories", func(ctx *iris.Context) {
-		stories, err := store.GetAllStories(ctx, &storystorage)
+	apistore.Get("/story/", func(ctx *iris.Context) {
+		stories, err := store.GetStories(ctx, &storystorage)
 		if (err != nil) {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
 				"err":err.Error(),

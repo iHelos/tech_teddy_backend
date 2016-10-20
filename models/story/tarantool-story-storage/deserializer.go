@@ -6,12 +6,16 @@ import (
 	"errors"
 	"strings"
 	"strconv"
-	"github.com/labstack/gommon/log"
 )
 
 func DeserializeStoryArray(response *tarantool.Response) ([]story.Story, error) {
+	datalen := len(response.Data)
+	if datalen == 1{
+		if len(response.Data[0].([]interface{})) == 0{
+			return []story.Story{}, nil
+		}
+	}
 	var slice = make([]story.Story, len(response.Data))
-	log.Print(response.Data)
 	for i, story := range response.Data {
 		var err error
 		slice[i], err = DeserializeStory(story)
