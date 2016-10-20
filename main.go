@@ -22,6 +22,7 @@ import (
 var userstorage *teddyUsers.UserStorage
 var storystorage teddyStory.StoryStorageEngine
 var config *deploy_config.DeployConfiguration
+
 func init() {
 	config = deploy_config.GetConfiguration("./deploy.config")
 
@@ -69,7 +70,6 @@ func main() {
 		port = config.Port
 	}
 
-
 	cors_config := cors.Options{
 		AllowedOrigins:[]string{"*"},
 		AllowedMethods:[]string{"GET", "POST", "OPTIONS", ""},
@@ -107,12 +107,14 @@ func main() {
 
 	iris.Get("/story/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
-		if id == "1" {
-			ctx.SendFile("./static/audio/music.mp3", "music.mp3")
-		} else {
-			ctx.SendFile("./static/audio/story.mp3", "story.mp3")
+		switch id {
+		case "1": ctx.SendFile("./static/audio/music.mp3", "music.mp3");
+		case "2": ctx.SendFile("./static/audio/music.mp3", "music.mp3");
+		case "3": ctx.SendFile("./static/audio/k_r.raw", "k_r.raw");
+		case "4": ctx.SendFile("./static/audio/m_i_m.raw", "m_i_m.raw");
+		case "5": ctx.SendFile("./static/audio/tale.raw", "tale.raw");
+		default:  ctx.SendFile("./static/audio/k_r.raw", "k_r.raw");
 		}
-
 	})
 
 	api := iris.Party("/api/")
@@ -124,7 +126,7 @@ func main() {
 	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
 	apiuser.Use(filelogger.New("logs/userlog.log"))
-	apiuser.Any("/login",  func(ctx *iris.Context) {
+	apiuser.Any("/login", func(ctx *iris.Context) {
 		userToken, bearToken, err := userstorage.LoginUser(ctx)
 		if err != nil {
 
@@ -139,11 +141,11 @@ func main() {
 
 	apiuser.Get("/mystories", userstorage.MustBeLogged, func(ctx *iris.Context) {
 		stories, err := store.GetMyStories(ctx, &storystorage)
-		if (err!=nil) {
+		if (err != nil) {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
 				"err":err.Error(),
 			}))
-		}else{
+		}else {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
 				"stories":stories,
 			}))
@@ -173,15 +175,14 @@ func main() {
 		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"":""}))
 	})
 
-
 	apistore := api.Party("/store/")
 	apistore.Get("/stories", func(ctx *iris.Context) {
 		stories, err := store.GetAllStories(ctx, &storystorage)
-		if (err!=nil) {
+		if (err != nil) {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
 				"err":err.Error(),
 			}))
-		}else{
+		}else {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
 				"stories":stories,
 			}))
