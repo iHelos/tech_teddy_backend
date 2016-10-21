@@ -6,6 +6,7 @@ import (
 	"github.com/iHelos/tech_teddy/models/user"
 	"github.com/labstack/gommon/log"
 	"strconv"
+	"strings"
 )
 
 func BuyStory(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
@@ -29,9 +30,15 @@ func GetMyStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story
 	return stories, err
 }
 
-func GetAllStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
+func FindStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
 	var stories = []story.Story{}
-	stories, err := (*storage).GetAll("","",0)
+	keyword := ctx.FormValueString("keyword")
+	if len(keyword) < 3{
+		return stories, nil
+	}
+	keyword = strings.ToLower(keyword)
+	log.Print(keyword)
+	stories, err := (*storage).Search(keyword)
 	return stories, err
 }
 

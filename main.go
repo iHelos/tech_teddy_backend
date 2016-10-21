@@ -189,5 +189,29 @@ func main() {
 		}
 	})
 
+	apistore.Any("/buy", func(ctx *iris.Context) {
+		_,err := userstorage.Buy(ctx);
+		if err != nil {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err))
+		}        else {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{
+				"transaction":"completed",
+			}))
+		}
+	})
+
+	apistore.Get("/search/", func(ctx *iris.Context) {
+		stories, err := store.FindStories(ctx, &storystorage)
+		if (err != nil) {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
+				"err":err.Error(),
+			}))
+		}else {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
+				"stories":stories,
+			}))
+		}
+	})
+
 	iris.Listen(config.Host + ":" + port)
 }

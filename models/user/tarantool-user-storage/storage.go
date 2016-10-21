@@ -60,3 +60,8 @@ func (con StorageConnection) CheckIsLogged(sid string) (error){
 	_, err := con.Call("isLogined", []interface{}{sid})
 	return err
 }
+
+func (con StorageConnection) BuyStory(login string, sid int) (error){
+	_, err := con.Call("buyStory", []interface{}{login, sid})
+	return err
+}
