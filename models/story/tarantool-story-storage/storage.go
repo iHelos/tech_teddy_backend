@@ -56,6 +56,8 @@ func (con StorageConnection) GetMyStories(login string) ([]story.Story, error) {
 	stories, err := DeserializeStoryArray(answer)
 	return stories, err
 }
-func (StorageConnection) Search(keyword string) ([]story.Story, error) {
-	return []story.Story{}, nil
+func (con StorageConnection) Search(keyword string) ([]story.Story, error) {
+	answer, err := con.Call("findStory", []interface{}{keyword})
+	stories, err := DeserializeStoryArray(answer)
+	return stories, err
 }

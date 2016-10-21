@@ -19,6 +19,7 @@ type UserStorageEngine interface {
 	Load(string) (NewUser, error)
 	CheckLogin(string, string) (error)
 	CheckIsLogged(string) (error)
+	BuyStory(string, int) (error)
 }
 
 type UserStorage struct {
@@ -138,6 +139,23 @@ func GetLogin(ctx *iris.Context) (string, error){
 	} else {
 		return "",err
 	}
+}
+
+type StoryPointer struct {
+	StoryID int `json:"storyID"`
+}
+func (storage *UserStorage) Buy(ctx *iris.Context) (string, error){
+	login, err := GetLogin(ctx)
+	if err != nil{
+		return "", err
+	}
+	story := StoryPointer{}
+	err = json.Unmarshal(ctx.Request.Body(), &story)
+	if err != nil{
+		return "", err
+	}
+	err = storage.Engine.BuyStory(login, story.StoryID)
+	return "ok", err
 }
 
 func (storage *UserStorage) MustBeLogged(ctx *iris.Context) {

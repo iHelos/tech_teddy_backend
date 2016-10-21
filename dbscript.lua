@@ -137,7 +137,7 @@ local function bootstrap()
     toyspace:create_index('primary', {type = 'hash', parts = {1, 'unsigned'}})
     --id, category, name, price, duration, descriprion, author
     local audiospace = box.schema.create_space('audio')
-    audiospace:create_index('primary', {type = 'hash', parts = {1, 'unsigned'}})
+    audiospace:create_index('primary', {type = 'tree', parts = {1, 'unsigned'}})
     audiospace:create_index('cat_name', {type='tree',unique=true, parts = {2,'unsigned',3,'string'}})
     audiospace:create_index('cat_price_name', {type='tree',unique=true, parts = {2,'unsigned',4,'unsigned',3,'string'}})
     audiospace:create_index('cat_duration_name', {type='tree',unique=true, parts = {2,'unsigned',5,'string',3,'string'}})
@@ -151,6 +151,7 @@ local function bootstrap()
     box.schema.func.create('getAllCategoryStories')
     box.schema.func.create('getUserStories')
     box.schema.func.create('buyStory')
+    box.schema.func.create('findStory')
     -- Comment this if you need fine grained access control (without it, guest
     -- will have access to everything)
     -- box.schema.user.grant('goClient', 'read,write,execute', 'universe')
@@ -169,6 +170,7 @@ local function bootstrap()
     box.schema.user.grant('goClient', 'execute', 'function', 'getAllCategoryStories')
     box.schema.user.grant('goClient', 'execute', 'function', 'getUserStories')
     box.schema.user.grant('goClient', 'execute', 'function', 'buyStory')
+    box.schema.user.grant('goClient', 'execute', 'function', 'findStory')
 end
 
 -- for first run create a space and add set up grants
@@ -260,3 +262,49 @@ function buyStory(userLogin, storyid)
     return stories
 end
 
+-- Return the minimum of three elements
+function min(a, b, c)
+    return math.min(math.min(a, b), c)
+end
+
+-- Creates a 2D matrix
+function matrix(row,col)
+    local m = {}
+    for i = 1,row do m[i] = {}
+    for j = 1,col do m[i][j] = 0 end
+    end
+    return m
+end
+
+-- Calculates the Levenshtein distance between two strings
+function lev_iter_based(strA,strB)
+    local M = matrix(#strA+1,#strB+1)
+    local i,j,cost
+    local row,col = #M,#M[1]
+    for i = 1,row do M[i][1] = i-1 end
+    for j = 1,col do M[1][j] = j-1 end
+    for i = 2,row do
+        for j = 2,col do
+            if (strA:sub(i-1,i-1) == strB:sub(j-1,j-1)) then cost = 0
+            else cost = 1
+            end
+            M[i][j] = min(M[i-1][j]+1,M[i][j-1]+1,M[i-1][j-1]+cost)
+        end
+    end
+    return M[row][col]
+end
+
+function findStory(str)
+    stories = {}
+    for k, v in s:pairs() do
+        lev_dist = lev_iter_based(v[3]:lower(), str:lower())
+        if lev_dist < 3 then
+            table.insert(stories,v)
+        end
+    end
+    return stories
+end
+
+function addRandomStory(str)
+    box.space.audio:auto_increment{math.random(3),str,math.random(100),'25:40', 'Описание случайной сказки', 'Автор 1' }
+end
