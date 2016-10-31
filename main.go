@@ -17,6 +17,11 @@ import (
 	"github.com/iris-contrib/middleware/cors"
 	"github.com/iris-contrib/middleware/recovery"
 	"github.com/iHelos/tech_teddy/views/store"
+	"cloud.google.com/go/storage"
+	"context"
+	"google.golang.org/api/option"
+	"fmt"
+	"io/ioutil"
 )
 
 var userstorage *teddyUsers.UserStorage
@@ -61,6 +66,35 @@ func init() {
 	//iris.UseTemplate(html.New(html.Config{
 	//	Layout: "layout.html",
 	//})).Directory("./templates", ".html")
+	ctx := context.Background()
+	google_client, err := storage.NewClient(
+		ctx,
+		option.WithServiceAccountFile("./gostorage.json"),
+	)
+	if err != nil {
+		log.Print(err)
+	}
+	_ = google_client
+	bkt := google_client.Bucket("hardteddy_stories")
+	attrs, err := bkt.Attrs(ctx)
+	if err != nil {
+		log.Print(err)
+	}
+	fmt.Printf("bucket %s, created at %s, is located in %s with storage class %s\n",
+		attrs.Name, attrs.Created, attrs.Location, attrs.StorageClass)
+	storage_opts := storage.SignedURLOptions{}
+	storage_opts.PrivateKey, err = ioutil.ReadFile("./gostorage.pem")
+	if err != nil{
+		log.Print(err)
+	}
+	storage_opts.Expires = time.Now().Add(time.Minute)
+	storage_opts.Method = "GET"
+	storage_opts.GoogleAccessID = "116466809002114199830"
+	url, err := storage.SignedURL("hardteddy_stories", "report.pdf", &storage_opts)
+	if err != nil {
+		log.Print(err)
+	}
+	fmt.Println(url)
 }
 
 func main() {
