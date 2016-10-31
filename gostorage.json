@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "hardteddy-148013",
+  "private_key_id": "74991237fcc54f33a30da871cb711ea88cb60fdf",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDv+rIaf20balqP\nA9ydjPIx0RYSEaZBNvpLBCiOblwlLDR18Wog884RI53vpY8VmEVEks+0jFcrjL6r\nnAiT6MbnjxTiy9zCHHu94iyVHg3mnb5KRkceNrv+9V873OhZJnpc3sPW1FdblPhS\nZHRpcjiue2zSxOMzBtyv/7H6n9BrqQvgWR2+oNTC3VuSYcvjTrBsQ0MNCImoYPVi\nGVmJR6iGpZDa2Q/fF4LLEKzCL3Ktb9gLE/+k9zaVrexCw9iBry6QCd15zvPVHsZT\nNK8EOGGjgtm0xDTqp/cr4wMGVYXdDHl6USSK+HKDUlfQpJpZHiEC7WJmfprV+3KS\n50EZmWnxAgMBAAECggEBAOEmNNlVellBZCtPtTl/1m9Uur9DHdeLrDKbeS2AbyVV\nHvcVA7xc4ZYE85W2n9Lj5QEcOJEtJk+uoelB4G5c89imzjKmj7zymkohnDBfXS1k\nC/eFjg3Tzne7YJk6fie+SQk+20CAQmGjF4O9ydZwmqthE01/+aWTJ5RccnAwZovJ\n4kmkdKEc943nO3C9lTFBSxldVh8o5Ggoihsnlr166RHzrZIdg7TkaXNIaNYRzrUx\nI+xyTGHV/JplbqYbDpWDFyDXesEWzBiH8/OqjPRMDw9qu+awhaa3gqadowbcsygn\nVN4AYKrNK/87Zkh1IOOhjk/415AvOzzNc1trce54O5ECgYEA+Bo+Bv1sLpdII5O2\nU8WmG4pxjpGcH6VNa+kS6683WhlR+H8qX7kaiK+5wYzwSnutmKtqkMA2eaGp4Odg\nROz/BZ6GcgUnehFyAi4aeDrKQNI21eqf34KLc+nA1iuf87VlP5dCqHyTrBugj3gr\nS+eJ64ZDxG+bk7MWyqUDvTQutfUCgYEA955CGX3t/OVndNtQPC/3rYxJdQuVgEt1\na1r7kjlEb11sT8KnO2YEk/x2tvzUL4OGqdovEbS5v/yc/VtsarbAPJQj/YIcyP55\nu32aet91iJYRbuwtN5H3WAMAXXTs/r9X7rn0I7PFoHQHejbcQAfbo0rczgktiBiJ\nJnqT6HHRKo0CgYBv4dWq7UmF0S707D3ClVUNAmenNT7EfpTlXtvrcL5zYQu4FhCT\nzjOLBEOuZtJNpGxqdpK96BAo1aB4DZ86Ne3jKNPUQ0LEJ23UUdoZ8dkXVjToTr/9\n2S7t/LG7YzzkeB7KiHnE5Tjq2iKT0EsmFan6jjetM+9isdZLWBLRleCiqQKBgQCt\nM2yGyjf6ajgoW/NOdjrnkLYdAcJL3/w84IIRcK82uoE1dTFmceCH5tLfAhAlP/mk\nuzGrT9+Rs8/Xw+gc6MGkXfairy0VRjK9+4hfpAhhRp7hGKA0O4xoaokJ1eyj8BFA\nsZ9cjbWRmzdTvCXpP9XY7VdvYqoPhSIB4UGuGFa3TQKBgCnPnS7rPeElqpqMG4MR\nuwxhAUZ3n/ab27AyyppoZzH+f4kOMimWLxQoll7hhH5UJaIs+JZSWuJoomGrpJlH\nhYihMo7RIK4VYIb6luQu7MDfWtHIWa3ur+WDnnKoM25aLHaK6KXc/C3HMHg4X3Dj\n/N+QfBe8yZHPyd0YtU0smy40\n-----END PRIVATE KEY-----\n",
+  "client_email": "server-client@hardteddy-148013.iam.gserviceaccount.com",
+  "client_id": "116466809002114199830",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/server-client%40hardteddy-148013.iam.gserviceaccount.com"
+}
