@@ -7,6 +7,12 @@ import (
 	"github.com/labstack/gommon/log"
 	"strconv"
 	"strings"
+	"os"
+	"fmt"
+	"io"
+	"mime/multipart"
+//	"github.com/bobertlo/go-mpg123/mpg123"
+	"os/exec"
 )
 
 func BuyStory(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
@@ -64,4 +70,74 @@ func GetStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.S
 	}
 	return stories,err
 
+}
+
+func getFileForm(ctx *iris.Context, str string) (multipart.File, error){
+	info, err := ctx.FormFile(str)
+	if(err != nil){
+		return  nil, err
+	}
+	file, err := info.Open()
+	if(err != nil){
+		return  nil, err
+	}
+	return file, nil
+}
+
+func AddStoryFiles(ctx *iris.Context, id string) bool {
+	// Get the file from the request
+	audio, err := getFileForm(ctx, "audio")
+	if err != nil{
+		fmt.Println(err)
+		return false
+	}
+	defer audio.Close()
+
+	small_img, err := getFileForm(ctx, "small_img")
+	if err != nil{
+		fmt.Println(err)
+		return false
+	}
+	defer small_img.Close()
+
+	large_img, err := getFileForm(ctx, "large_img")
+	if err != nil{
+		fmt.Println(err)
+		return false
+	}
+	defer large_img.Close()
+
+	out1, err := os.OpenFile("./static/audio/"+string(id)+".mp3", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	defer out1.Close()
+	out2, err := os.OpenFile("./uploads/large_"+string(id)+".jpg", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	defer out2.Close()
+	out3, err := os.OpenFile("./uploads/small_"+string(id)+".jpg", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	defer out3.Close()
+	io.Copy(out1, audio)
+	io.Copy(out2, large_img)
+	io.Copy(out3, small_img)
+
+
+	dir1 :=  "/home/ihelos/Desktop/go/src/github.com/iHelos/tech_teddy/static/audio/test.raw"
+	dir2 :=  "/home/ihelos/Desktop/go/src/github.com/iHelos/tech_teddy/static/audio/1.mp3"
+	cmd := exec.Command("mpg123","-O",dir1, "--rate", "8000",  "--mono", "-e", "u8", dir2)
+	log.Print(cmd.Args)
+
+	asd, err := cmd.CombinedOutput()
+	//asd, err = exec.Command("pwd").CombinedOutput()
+	log.Print(string(asd))
+	log.Print(err)
+	return true
 }

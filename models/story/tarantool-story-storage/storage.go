@@ -3,14 +3,18 @@ package tarantool_story_storage
 import (
 	"github.com/tarantool/go-tarantool"
 	"github.com/iHelos/tech_teddy/models/story"
+	"github.com/labstack/gommon/log"
 )
 
 type StorageConnection struct {
 	*tarantool.Connection
 }
 
-func (StorageConnection) Create(story.Story) (error) {
-	return nil
+func (con StorageConnection) Create(st story.Story) (error) {
+	var duration string = string(st.Minutes) + ":" + string(st.Seconds)
+	story_obj, err := con.Call("addStory", []interface{}{st.Name, st.Description, st.Author, duration, st.Price, st.Category})
+	log.Print(story_obj)
+	return err
 }
 func (StorageConnection) Load(string) (story.Story, error) {
 	var storyobj = story.Story{}
