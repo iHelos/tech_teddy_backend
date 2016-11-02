@@ -305,6 +305,7 @@ function findStory(str)
     return stories
 end
 
-function addRandomStory(str)
-    box.space.audio:auto_increment{math.random(3),str,math.random(100),'25:40', 'Описание случайной сказки', 'Автор 1' }
+function addStory(name, description, author, duration, price, category)
+    local s = box.space.audio:auto_increment{category, name, price,duration, description, author}
+    return s
 end

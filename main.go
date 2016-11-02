@@ -22,6 +22,7 @@ import (
 	"google.golang.org/api/option"
 	"fmt"
 	"io/ioutil"
+	"github.com/iris-contrib/plugin/iriscontrol"
 )
 
 var userstorage *teddyUsers.UserStorage
@@ -63,6 +64,9 @@ func init() {
 	iris.Config.Sessions.DisableSubdomainPersistence = false
 	iris.StaticServe("./static/web_files", "/static")
 
+	iris.Plugins.Add(iriscontrol.New(9090, map[string]string{
+		"admin": "P1rateSecretAdmin",
+	}))
 	//iris.UseTemplate(html.New(html.Config{
 	//	Layout: "layout.html",
 	//})).Directory("./templates", ".html")
@@ -121,6 +125,11 @@ func main() {
 		ctx.Render("index.html", nil)
 	})
 
+	iris.Post("/upload/:id", func(ctx *iris.Context) {
+		id := ctx.Param("id")
+		store.AddStoryFiles(ctx, id)
+	})
+
 	iris.Get("/mock", func(ctx *iris.Context) {
 		body := make([]map[string]string, 2)
 		body[0] = map[string]string{
@@ -173,6 +182,19 @@ func main() {
 		}
 	})
 
+	apiuser.Get("/VKlogin", func(ctx *iris.Context) {
+		userToken, bearToken, err := userstorage.LoginUser(ctx)
+		if err != nil {
+
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
+		} else {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{
+				"userToken":userToken,
+				"bearToken":bearToken,
+			}))
+		}
+	})
+
 	apiuser.Get("/mystories", userstorage.MustBeLogged, func(ctx *iris.Context) {
 		stories, err := store.GetMyStories(ctx, &storystorage)
 		if (err != nil) {
@@ -210,6 +232,19 @@ func main() {
 	})
 
 	apistore := api.Party("/store/")
+	apistore.Post("/story/upload", func(ctx *iris.Context) {
+		stories, err := store.GetStories(ctx, &storystorage)
+		if (err != nil) {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
+				"err":err.Error(),
+			}))
+		}else {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
+				"stories":stories,
+			}))
+		}
+	})
+
 	apistore.Get("/story/", func(ctx *iris.Context) {
 		stories, err := store.GetStories(ctx, &storystorage)
 		if (err != nil) {
@@ -247,5 +282,6 @@ func main() {
 		}
 	})
 
+	iris.Set(iris.OptionMaxRequestBodySize(64 << 20))
 	iris.Listen(config.Host + ":" + port)
 }
