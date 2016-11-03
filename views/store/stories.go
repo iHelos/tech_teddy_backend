@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"cloud.google.com/go/storage"
 	"context"
+	"syscall"
 )
 
 func BuyStory(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
@@ -130,12 +131,19 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 	dir2 :=  "static/audio/"+id+".mp3"
 	cmd := exec.Command("mpg123","-O", dir1, "--rate", "8000",  "--mono", "-e", "u8", dir2)
 	log.Print(cmd.Args)
-
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	asd, err := cmd.CombinedOutput()
 	//asd, err = exec.Command("pwd").CombinedOutput()
 	log.Print(string(asd))
 	log.Print(err)
-	cmd.Process.Kill()
+
+
+	pgid, err := syscall.Getpgid(cmd.Process.Pid)
+	if err == nil {
+		syscall.Kill(-pgid, 15)  // note the minus sign
+	}
+
+	cmd.Wait()
 	storybckt := (*googlestorage).Bucket("hardteddy_stories")
 	if(err != nil){
 
