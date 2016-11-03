@@ -115,8 +115,8 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 	}
 	defer out1.Close()
 	io.Copy(out1, audio)
-	dir1 :=  "/home/ihelos/Desktop/go/src/github.com/iHelos/tech_teddy/static/audio/"+id+".raw"
-	dir2 :=  "/home/ihelos/Desktop/go/src/github.com/iHelos/tech_teddy/static/audio/"+id+".mp3"
+	dir1 :=  "static/audio/"+id+".raw"
+	dir2 :=  "static/audio/"+id+".mp3"
 	cmd := exec.Command("mpg123","-O", dir1, "--rate", "8000",  "--mono", "-e", "u8", dir2)
 	log.Print(cmd.Args)
 
