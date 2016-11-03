@@ -16,7 +16,6 @@ import (
 	"encoding/json"
 	"cloud.google.com/go/storage"
 	"context"
-	"syscall"
 	"time"
 )
 
