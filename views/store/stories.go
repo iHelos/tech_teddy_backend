@@ -135,6 +135,7 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 	//asd, err = exec.Command("pwd").CombinedOutput()
 	log.Print(string(asd))
 	log.Print(err)
+	cmd.Process.Kill()
 	storybckt := (*googlestorage).Bucket("hardteddy_stories")
 	if(err != nil){
 
@@ -265,6 +266,7 @@ func AddStoryFiles(ctx *iris.Context, id string) bool {
 	log.Print(cmd.Args)
 
 	asd, err := cmd.CombinedOutput()
+
 	//asd, err = exec.Command("pwd").CombinedOutput()
 	log.Print(string(asd))
 	log.Print(err)
