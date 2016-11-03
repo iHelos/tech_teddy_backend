@@ -72,7 +72,18 @@ func GetStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.S
 		stories, err = (*storage).GetAllByCategory(getStoriesParams.Order, getStoriesParams.Order_Type, getStoriesParams.Page, getStoriesParams.Cat)
 	}
 	return stories,err
+}
 
+type Category struct {
+	ID int `json:"name"`
+	Name string `json:"id"`
+}
+
+func GetCategories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]Category, error){
+	var categories = make([]Category, 2)
+	categories[0] = Category{ID:1, Name:"сказки"}
+	categories[0] = Category{ID:1, Name:"колыбельные"}
+	return categories, nil
 }
 
 func getFileForm(ctx *iris.Context, str string) (multipart.File, error){
