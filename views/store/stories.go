@@ -17,6 +17,7 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"syscall"
+	"time"
 )
 
 func BuyStory(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
@@ -131,19 +132,27 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 	dir2 :=  "static/audio/"+id+".mp3"
 	cmd := exec.Command("mpg123","-O", dir1, "--rate", "8000",  "--mono", "-e", "u8", dir2)
 	log.Print(cmd.Args)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	asd, err := cmd.CombinedOutput()
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Wait()
+	}()
+	select {
+	case <-time.After(3 * time.Second):
+		if err := cmd.Process.Kill(); err != nil {
+			log.Fatal("failed to kill: ", err)
+		}
+		log.Print("process killed as timeout reached")
+	case err := <-done:
+		if err != nil {
+			log.Printf("process done with error = %v", err)
+		} else {
+			log.Print("process done gracefully without error")
+		}
+	}
 	//asd, err = exec.Command("pwd").CombinedOutput()
 	log.Print(string(asd))
 	log.Print(err)
-
-
-	pgid, err := syscall.Getpgid(cmd.Process.Pid)
-	if err == nil {
-		syscall.Kill(-pgid, 15)  // note the minus sign
-	}
-
-	cmd.Wait()
 	storybckt := (*googlestorage).Bucket("hardteddy_stories")
 	if(err != nil){
 
