@@ -256,6 +256,19 @@ func main() {
 		}
 	})
 
+	apistore.Get("/categories/", func(ctx *iris.Context) {
+		categories, err := store.GetCategories(ctx, &storystorage)
+		if (err != nil) {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
+				"err":err.Error(),
+			}))
+		}else {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
+				"categories":categories,
+			}))
+		}
+	})
+
 	apistore.Any("/buy", func(ctx *iris.Context) {
 		_,err := userstorage.Buy(ctx);
 		if err != nil {
