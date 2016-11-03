@@ -22,7 +22,6 @@ import (
 	"google.golang.org/api/option"
 	"fmt"
 	"io/ioutil"
-	"github.com/iris-contrib/plugin/iriscontrol"
 )
 
 var userstorage *teddyUsers.UserStorage
@@ -65,9 +64,6 @@ func init() {
 	iris.Config.Sessions.DisableSubdomainPersistence = false
 	iris.StaticServe("./static/web_files", "/static")
 
-	iris.Plugins.Add(iriscontrol.New(9090, map[string]string{
-		"admin": "P1rateSecretAdmin",
-	}))
 	//iris.UseTemplate(html.New(html.Config{
 	//	Layout: "layout.html",
 	//})).Directory("./templates", ".html")
@@ -242,7 +238,7 @@ func main() {
 			}))
 		}else {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
-				"stories":story_obj,
+				"story":story_obj,
 			}))
 		}
 	})
