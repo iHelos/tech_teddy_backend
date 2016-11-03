@@ -1,7 +1,7 @@
 package story
 
 type StoryStorageEngine interface {
-	Create(Story) (error)
+	Create(Story) (int, error)
 	Load(string) (Story, error)
 	GetAll(order string, order_type string, page int) ([]Story, error)
 	GetAllByCategory(order string, order_type string, page int, category int) ([]Story, error)

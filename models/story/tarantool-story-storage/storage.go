@@ -10,11 +10,14 @@ type StorageConnection struct {
 	*tarantool.Connection
 }
 
-func (con StorageConnection) Create(st story.Story) (error) {
-	var duration string = string(st.Minutes) + ":" + string(st.Seconds)
-	story_obj, err := con.Call("addStory", []interface{}{st.Name, st.Description, st.Author, duration, st.Price, st.Category})
-	log.Print(story_obj)
-	return err
+func (con StorageConnection) Create(st story.Story) (int, error) {
+	story_obj, err := con.Call("addStory", []interface{}{st.Name, st.Description, st.Author, "00:00", st.Price, st.Category})
+	if err!=nil{
+		return 0, err
+	}
+	story_des, err := DeserializeStory(story_obj.Data[0])
+	log.Print(story_des, err)
+	return int(story_des.ID), err
 }
 func (StorageConnection) Load(string) (story.Story, error) {
 	var storyobj = story.Story{}

@@ -28,6 +28,7 @@ import (
 var userstorage *teddyUsers.UserStorage
 var storystorage teddyStory.StoryStorageEngine
 var config *deploy_config.DeployConfiguration
+var google_client *storage.Client
 
 func init() {
 	config = deploy_config.GetConfiguration("./deploy.config")
@@ -71,7 +72,7 @@ func init() {
 	//	Layout: "layout.html",
 	//})).Directory("./templates", ".html")
 	ctx := context.Background()
-	google_client, err := storage.NewClient(
+	google_client, err = storage.NewClient(
 		ctx,
 		option.WithServiceAccountFile("./gostorage.json"),
 	)
@@ -125,9 +126,17 @@ func main() {
 		ctx.Render("index.html", nil)
 	})
 
-	iris.Post("/upload/:id", func(ctx *iris.Context) {
+	iris.Any("/upload/story/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
-		store.AddStoryFiles(ctx, id)
+		store.AddStoryFile(ctx, id, google_client)
+	})
+	iris.Any("/upload/smallimg/:id", func(ctx *iris.Context) {
+		id := ctx.Param("id")
+		store.AddStorySmallImg(ctx, id, google_client)
+	})
+	iris.Any("/upload/largeimg/:id", func(ctx *iris.Context) {
+		id := ctx.Param("id")
+		store.AddStoryLargeImg(ctx, id, google_client)
 	})
 
 	iris.Get("/mock", func(ctx *iris.Context) {
@@ -232,15 +241,15 @@ func main() {
 	})
 
 	apistore := api.Party("/store/")
-	apistore.Post("/story/upload", func(ctx *iris.Context) {
-		stories, err := store.GetStories(ctx, &storystorage)
+	apistore.Post("/story/add", func(ctx *iris.Context) {
+		story_obj, err := store.AddStory(ctx, &storystorage)
 		if (err != nil) {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
 				"err":err.Error(),
 			}))
 		}else {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
-				"stories":stories,
+				"stories":story_obj,
 			}))
 		}
 	})
