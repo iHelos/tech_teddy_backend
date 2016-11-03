@@ -82,7 +82,7 @@ type Category struct {
 func GetCategories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]Category, error){
 	var categories = make([]Category, 2)
 	categories[0] = Category{ID:1, Name:"сказки"}
-	categories[0] = Category{ID:1, Name:"колыбельные"}
+	categories[1] = Category{ID:2, Name:"колыбельные"}
 	return categories, nil
 }
 
