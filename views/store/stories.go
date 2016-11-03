@@ -136,7 +136,7 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 		done <- cmd.Wait()
 	}()
 	select {
-	case <-time.After(3 * time.Second):
+	case <-time.After(20 * time.Second):
 		if err := cmd.Process.Kill(); err != nil {
 			log.Fatal("failed to kill: ", err)
 		}
