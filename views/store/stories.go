@@ -75,8 +75,8 @@ func GetStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.S
 }
 
 type Category struct {
-	ID int `json:"name"`
-	Name string `json:"id"`
+	ID int `json:"id"`
+	Name string `json:"name"`
 }
 
 func GetCategories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]Category, error){
