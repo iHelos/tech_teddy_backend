@@ -130,8 +130,7 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 	dir1 :=  "static/audio/"+id+".raw"
 	dir2 :=  "static/audio/"+id+".mp3"
 	cmd := exec.Command("mpg123","-O", dir1, "--rate", "8000",  "--mono", "-e", "u8", dir2)
-	log.Print(cmd.Args)
-	asd, err := cmd.CombinedOutput()
+	err = cmd.Start()
 	done := make(chan error, 1)
 	go func() {
 		done <- cmd.Wait()
@@ -150,8 +149,6 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 		}
 	}
 	//asd, err = exec.Command("pwd").CombinedOutput()
-	log.Print(string(asd))
-	log.Print(err)
 	storybckt := (*googlestorage).Bucket("hardteddy_stories")
 	if(err != nil){
 
