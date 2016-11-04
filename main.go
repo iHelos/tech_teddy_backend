@@ -230,7 +230,7 @@ func main() {
 	})
 
 	apistore := api.Party("/store/")
-	apistore.Post("/story/add", func(ctx *iris.Context) {
+	apistore.Any("/story/add", func(ctx *iris.Context) {
 		story_obj, err := store.AddStory(ctx, &storystorage)
 		if (err != nil) {
 			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
