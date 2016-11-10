@@ -246,6 +246,15 @@ function getUserStories(userLogin)
     return stories
 end
 
+function has_value (tab, val)
+    for index, value in ipairs (tab) do
+        if value == val then
+            return true
+        end
+    end
+    return false
+end
+
 function buyStory(userLogin, storyid)
     user = box.space.profile:get{userLogin}
     story = box.space.audio:get{storyid}
@@ -256,6 +265,9 @@ function buyStory(userLogin, storyid)
         return error("no such story")
     end
     stories = user[4]
+    if has_value(stories, storyid) then
+        return error("already bought")
+    end
     table.insert(stories, storyid)
     table.sort(stories)
     box.space.profile:update(userLogin, {{'=', 4, stories}})

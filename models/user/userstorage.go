@@ -35,11 +35,12 @@ const (
 )
 
 func (storage *UserStorage) CreateUser(ctx *iris.Context) (string,string,error) {
-	log.Print(ctx.Request.Header.String())
 	var user = NewUser{}
 	var err error
 	err = json.Unmarshal(ctx.Request.Body(), &user)
+	log.Print(ctx.Request.Body())
 	if err != nil {
+		log.Print(err)
 		UserError := NewUserError()
 		UserError.Append("request", 0)
 		return "","",UserError
@@ -94,6 +95,7 @@ func (storage *UserStorage) LoginUser(ctx *iris.Context) (string,string,error) {
 	user.Login = strings.ToLower(user.Login)
 	err = storage.Engine.CheckLogin(user.Login, user.Password)
 	if err != nil {
+		log.Print(err)
 		UserError := NewUserError()
 		UserError.Append("request", 1)
 		return "","",UserError
