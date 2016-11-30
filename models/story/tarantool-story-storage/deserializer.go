@@ -6,7 +6,7 @@ import (
 	"errors"
 	"strings"
 	"strconv"
-	"github.com/labstack/gommon/log"
+//	"github.com/labstack/gommon/log"
 )
 
 func DeserializeStoryArray(response *tarantool.Response) ([]story.Story, error) {
@@ -42,6 +42,7 @@ func DeserializeStory(serstory interface{}) (story.Story, error) {
 
 func arrayToStory(storyarr []interface{}) (story.Story, error){
 	if len(storyarr) >= 16 {
+		//log.Print(storyarr)
 		par1, _ := storyarr[0].(uint64);
 		par2, _ := storyarr[1].(uint64);
 		par3, _ := storyarr[2].(string);
@@ -58,6 +59,7 @@ func arrayToStory(storyarr []interface{}) (story.Story, error){
 		par14, _ := storyarr[13].(string);
 		par15, _ := storyarr[14].(string);
 		par16, _ := storyarr[15].(string);
+		//log.Print(storyarr[15])
 
 		//if !(ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7 && ok8 && ok9 && ok10 && ok11 && ok12 && ok13 && ok14 && ok15 && ok16){
 		//	log.Print("asdasdasd")
@@ -75,7 +77,6 @@ func arrayToStory(storyarr []interface{}) (story.Story, error){
 		if (err != nil){
 			return story.Story{}, err
 		}
-		log.Print("zxc")
 		storyobj := story.Story{
 			// --id, category, name, price, duration, descriprion, author
 			ID:par1,

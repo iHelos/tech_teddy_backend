@@ -19,6 +19,10 @@ import (
 	"time"
 )
 
+const stories_url string  = "http://storage.googleapis.com/hardteddy_stories/"
+const img_url string  = "https://storage.googleapis.com/hardteddy_images/"
+
+
 func BuyStory(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
 	var stories = []story.Story{}
 	login, err := user.GetLogin(ctx)
@@ -135,7 +139,7 @@ func getSize(file *os.File) int64{
 	return fi.Size()
 }
 
-func AddStoryFile(ctx *iris.Context, id string, tag string, googlestorage *storage.Client) bool {
+func AddStoryFile(ctx *iris.Context, id string, tag string, googlestorage *storage.Client, storage *story.StoryStorageEngine) bool {
 	// Get the file from the request
 	name := id + tag
 
@@ -188,10 +192,29 @@ func AddStoryFile(ctx *iris.Context, id string, tag string, googlestorage *stora
 
 	sendToGoogle(file1, name, ".raw", "audio/basic", storybckt)
 	sendToGoogle(file2, "mp3/"+ name, ".mp3", "audio/mpeg", storybckt)
+
+	fi, err := file1.Stat()
+	id_int, err := strconv.Atoi(id)
+	log.Print(id_int)
+	switch tag {
+	case "f":
+		(*storage).SetUrlFemale(id_int,stories_url + name  + ".raw")
+		(*storage).SetUrlMp3Female(id_int,stories_url + "mp3/" + name  + ".mp3")
+		(*storage).SetSizeF(id_int, fi.Size())
+		break;
+	case "b":
+		(*storage).SetUrlBackground(id_int,stories_url + "/mp3/" +  name  + ".mp3")
+		break;
+	default:
+		(*storage).SetUrlMale (id_int,stories_url + name  + ".raw")
+		(*storage).SetUrlMp3Male(id_int,stories_url + "mp3/" + name  + ".mp3")
+		(*storage).SetSizeM(id_int,fi.Size())
+		break;
+	}
 	return true
 }
 
-func AddStorySmallImg(ctx *iris.Context, id string, googlestorage *storage.Client) bool {
+func AddStorySmallImg(ctx *iris.Context, id string, googlestorage *storage.Client, storyStorage *story.StoryStorageEngine) bool {
 	// Get the file from the request
 	small_img, err := getFileForm(ctx, "file")
 	if err != nil{
@@ -217,10 +240,12 @@ func AddStorySmallImg(ctx *iris.Context, id string, googlestorage *storage.Clien
 			break
 		}
 	}
+	id_int, err := strconv.Atoi(id)
+	(*storyStorage).SetUrlImageSmall (id_int, img_url + "small/"+id+".jpg")
 	return true
 }
 
-func AddStoryLargeImg(ctx *iris.Context, id string, googlestorage *storage.Client) bool {
+func AddStoryLargeImg(ctx *iris.Context, id string, googlestorage *storage.Client, storyStorage *story.StoryStorageEngine) bool {
 	large_img, err := getFileForm(ctx, "file")
 	if err != nil{
 		fmt.Println(err)
@@ -245,6 +270,8 @@ func AddStoryLargeImg(ctx *iris.Context, id string, googlestorage *storage.Clien
 			break
 		}
 	}
+	id_int, err := strconv.Atoi(id)
+	(*storyStorage).SetUrlImageLarge (id_int, img_url + "large/"+id+".jpg")
 	return true
 }
 func AddStoryFiles(ctx *iris.Context, id string) bool {

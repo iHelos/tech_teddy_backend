@@ -86,29 +86,56 @@ func (con StorageConnection) Search(keyword string) ([]story.Story, error) {
 }
 
 func (con StorageConnection) SetSizeM(id int, sizeM int64){
-	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 8, sizeM}})
+	_,err := con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 7, sizeM}})
+	if (err!=nil){
+		log.Print(err)
+	}
 }
 func (con StorageConnection) SetSizeF(id int, sizeF int64){
-	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 9, sizeF}})
+	_,err := con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 8, sizeF}})
+	if (err!=nil){
+		log.Print(err)
+	}
 }
 func (con StorageConnection) SetUrlMale(id int, url string){
-	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 10, url}})
+	_,err := con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 9, url}})
+	if (err!=nil){
+		log.Print(err)
+	}
 }
 func (con StorageConnection) SetUrlFemale(id int, url string){
-	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 11, url}})
+	_,err := con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 10, url}})
+	if (err!=nil){
+		log.Print(err)
+	}
 }
 func (con StorageConnection) SetUrlMp3Male(id int, url string){
-	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 12, url}})
+	_,err := con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 11, url}})
+	if (err!=nil){
+		log.Print(err)
+	}
 }
 func (con StorageConnection) SetUrlMp3Female(id int, url string){
-	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 13, url}})
+	_,err := con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 12, url}})
+	if (err!=nil){
+		log.Print(err)
+	}
 }
 func (con StorageConnection) SetUrlImageLarge(id int, url string){
-	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 15, url}})
+	_,err := con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 14, url}})
+	if (err!=nil){
+		log.Print(err)
+	}
 }
 func (con StorageConnection) SetUrlImageSmall(id int, url string){
-	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 16, url}})
+	_,err := con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 15, url}})
+	if (err!=nil){
+		log.Print(err)
+	}
 }
 func (con StorageConnection) SetUrlBackground(id int, url string){
-	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 14, url}})
+	_,err := con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 13, url}})
+	if (err!=nil){
+		log.Print(err)
+	}
 }

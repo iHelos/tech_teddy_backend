@@ -124,23 +124,23 @@ func main() {
 
 	iris.Any("/upload/story/male/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
-		store.AddStoryFile(ctx, id, "", google_client)
+		store.AddStoryFile(ctx, id, "", google_client, &storystorage)
 	})
 	iris.Any("/upload/story/female/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
-		store.AddStoryFile(ctx, id, "f", google_client)
+		store.AddStoryFile(ctx, id, "f", google_client, &storystorage)
 	})
 	iris.Any("/upload/story/background/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
-		store.AddStoryFile(ctx, id, "b" , google_client)
+		store.AddStoryFile(ctx, id, "b" , google_client, &storystorage)
 	})
 	iris.Any("/upload/smallimg/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
-		store.AddStorySmallImg(ctx, id, google_client)
+		store.AddStorySmallImg(ctx, id, google_client,&storystorage)
 	})
 	iris.Any("/upload/largeimg/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
-		store.AddStoryLargeImg(ctx, id, google_client)
+		store.AddStoryLargeImg(ctx, id, google_client, &storystorage)
 	})
 
 	iris.Get("/mock", func(ctx *iris.Context) {
@@ -258,6 +258,12 @@ func main() {
 				"err":err.Error(),
 			}))
 		}else {
+			for i,v := range stories{
+				temp := float64(v.SizeM)/8000.0
+				v.Minutes = int(temp/60.0)
+				v.Seconds = int(int(temp) - v.Minutes*60)
+				stories[i] = v
+			}
 			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
 				"stories":stories,
 			}))
