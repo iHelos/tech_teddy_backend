@@ -122,9 +122,17 @@ func main() {
 		ctx.Render("index.html", nil)
 	})
 
-	iris.Any("/upload/story/:id", func(ctx *iris.Context) {
+	iris.Any("/upload/story/male/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
-		store.AddStoryFile(ctx, id, google_client)
+		store.AddStoryFile(ctx, id, "", google_client)
+	})
+	iris.Any("/upload/story/female/:id", func(ctx *iris.Context) {
+		id := ctx.Param("id")
+		store.AddStoryFile(ctx, id, "f", google_client)
+	})
+	iris.Any("/upload/story/background/:id", func(ctx *iris.Context) {
+		id := ctx.Param("id")
+		store.AddStoryFile(ctx, id, "b" , google_client)
 	})
 	iris.Any("/upload/smallimg/:id", func(ctx *iris.Context) {
 		id := ctx.Param("id")
@@ -294,6 +302,6 @@ func main() {
 	})
 
 	iris.Set(iris.OptionMaxRequestBodySize(64 << 20))
-	//iris.Listen(config.Host + ":" + port)
-	iris.ListenLETSENCRYPT(config.Host + ":" + port)
+	iris.Listen(config.Host + ":" + port)
+	//iris.ListenLETSENCRYPT(config.Host + ":" + port)
 }

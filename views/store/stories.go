@@ -111,8 +111,34 @@ func AddStory(ctx *iris.Context, storage *story.StoryStorageEngine) (int, error)
 	return id, err
 }
 
-func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) bool {
+func sendToGoogle(file *os.File, name, format, contentType string, storybckt *storage.BucketHandle){
+	obj := storybckt.Object(name+format)
+	w := obj.NewWriter(context.Background())
+	w.ContentType = contentType
+	w.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
+	defer w.Close()
+	buf := make([]byte, 2048*16)
+	for {
+		len, err := file.Read(buf)
+		w.Write(buf[0:len])
+		if err != nil {
+			break
+		}
+	}
+}
+
+func getSize(file *os.File) int64{
+	fi, err := file.Stat()
+	if(err != nil){
+		log.Print(err)
+	}
+	return fi.Size()
+}
+
+func AddStoryFile(ctx *iris.Context, id string, tag string, googlestorage *storage.Client) bool {
 	// Get the file from the request
+	name := id + tag
+
 	audio, err := getFileForm(ctx, "file")
 	if err != nil{
 		fmt.Println(err)
@@ -121,15 +147,15 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 	defer audio.Close()
 
 
-	out1, err := os.OpenFile("./static/audio/"+string(id)+".mp3", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	out1, err := os.OpenFile("./static/audio/"+ name + ".mp3", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		fmt.Println(err)
 		return false
 	}
 	defer out1.Close()
 	io.Copy(out1, audio)
-	dir1 :=  "static/audio/"+id+".raw"
-	dir2 :=  "static/audio/"+id+".mp3"
+	dir1 :=  "static/audio/"+name+".raw"
+	dir2 :=  "static/audio/"+name+".mp3"
 	cmd := exec.Command("mpg123","-O", dir1, "--rate", "8000",  "--mono", "-e", "u8", dir2)
 	err = cmd.Start()
 	done := make(chan error, 1)
@@ -152,23 +178,16 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 	//asd, err = exec.Command("pwd").CombinedOutput()
 	storybckt := (*googlestorage).Bucket("hardteddy_stories")
 	if(err != nil){
+		log.Print(err)
+	}
+	file1, err := os.Open(dir1)
+	defer file1.Close()
 
-	}
-	file, err := os.Open(dir1)
-	defer file.Close()
-	obj := storybckt.Object(id+".raw")
-	w := obj.NewWriter(context.Background())
-	w.ContentType = "audio/basic"
-	//w.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
-	defer w.Close()
-	buf := make([]byte, 2048*16)
-	for {
-		len, err := file.Read(buf)
-		w.Write(buf[0:len])
-		if err != nil {
-			break
-		}
-	}
+	file2, err := os.Open(dir2)
+	defer file2.Close()
+
+	sendToGoogle(file1, name, ".raw", "audio/basic", storybckt)
+	sendToGoogle(file2, "mp3/"+ name, ".mp3", "audio/mpeg", storybckt)
 	return true
 }
 
