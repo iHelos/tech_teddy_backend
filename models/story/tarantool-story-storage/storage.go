@@ -11,7 +11,23 @@ type StorageConnection struct {
 }
 
 func (con StorageConnection) Create(st story.Story) (int, error) {
-	story_obj, err := con.Call("addStory", []interface{}{st.Name, st.Description, st.Author, "00:00", st.Price, st.Category})
+	story_obj, err := con.Call("addStory",
+		[]interface{}{
+			st.Name,
+			st.Description,
+			st.Author,
+			"00:00",
+			st.Price,
+			st.SizeM,
+			st.SizeF,
+			st.UrlMale,
+			st.UrlFemale,
+			st.UrlMp3Male,
+			st.UrlMp3Female,
+			st.UrlBackground,
+			st.UrlImageLarge,
+			st.UrlImageSmall,
+		})
 	if err!=nil{
 		return 0, err
 	}
@@ -67,4 +83,32 @@ func (con StorageConnection) Search(keyword string) ([]story.Story, error) {
 	answer, err := con.Call("findStory", []interface{}{keyword})
 	stories, err := DeserializeStoryArray(answer)
 	return stories, err
+}
+
+func (con StorageConnection) SetSizeM(id int, sizeM int64){
+	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 8, sizeM}})
+}
+func (con StorageConnection) SetSizeF(id int, sizeF int64){
+	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 9, sizeF}})
+}
+func (con StorageConnection) SetUrlMale(id int, url string){
+	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 10, url}})
+}
+func (con StorageConnection) SetUrlFemale(id int, url string){
+	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 11, url}})
+}
+func (con StorageConnection) SetUrlMp3Male(id int, url string){
+	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 12, url}})
+}
+func (con StorageConnection) SetUrlMp3Female(id int, url string){
+	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 13, url}})
+}
+func (con StorageConnection) SetUrlImageLarge(id int, url string){
+	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 15, url}})
+}
+func (con StorageConnection) SetUrlImageSmall(id int, url string){
+	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 16, url}})
+}
+func (con StorageConnection) SetUrlBackground(id int, url string){
+	con.Update("audio", "primary", []interface{}{uint(id)}, []interface{}{[]interface{}{"=", 14, url}})
 }
