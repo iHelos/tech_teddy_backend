@@ -95,7 +95,7 @@ func GetCategories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]Cate
 	categories[0] = Category{ID:1, Name:"сказки"}
 	categories[1] = Category{ID:2, Name:"колыбельные"}
 	categories[2] = Category{ID:3, Name:"помощник"}
-	categories[3] = Category{ID:4, Name:"инерактивные"}
+	categories[3] = Category{ID:4, Name:"интерактивные"}
 	return categories, nil
 }
 
