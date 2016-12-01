@@ -251,6 +251,19 @@ func main() {
 		}
 	})
 
+	apistore.Get("/story/substories/:id", func(ctx *iris.Context) {
+		story_obj, err := store.GetSubStories(ctx, &storystorage)
+		if (err != nil) {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
+				"err":err.Error(),
+			}))
+		}else {
+			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
+				"substories":story_obj,
+			}))
+		}
+	})
+
 	apistore.Get("/story/", func(ctx *iris.Context) {
 		stories, err := store.GetStories(ctx, &storystorage)
 		if (err != nil) {

@@ -79,16 +79,23 @@ func GetStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.S
 	return stories,err
 }
 
+func GetSubStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.SubStory, error){
+	id_str := ctx.Param("id")
+	id, _ := strconv.Atoi(id_str)
+	return (*storage).GetSubStories(id)
+}
+
 type Category struct {
 	ID int `json:"id"`
 	Name string `json:"name"`
 }
 
 func GetCategories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]Category, error){
-	var categories = make([]Category, 3)
+	var categories = make([]Category, 4)
 	categories[0] = Category{ID:1, Name:"сказки"}
 	categories[1] = Category{ID:2, Name:"колыбельные"}
 	categories[2] = Category{ID:3, Name:"помощник"}
+	categories[3] = Category{ID:4, Name:"инерактивные"}
 	return categories, nil
 }
 

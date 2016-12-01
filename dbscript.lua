@@ -321,3 +321,17 @@ function addStory(name, description, author, duration, price, category)
     local s = box.space.audio:auto_increment{category, name, price,duration, description, author}
     return s
 end
+
+function addSubStory(id)
+    local s = box.space.audio:get{id}
+    if s == null then
+        return error("no such story")
+    end
+    local arr = s[17]
+
+    return s
+end
+
+function getSubStories(id)
+    return json.encode(box.space.audio:get(id)[17])
+end

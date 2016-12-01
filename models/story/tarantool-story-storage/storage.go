@@ -3,7 +3,8 @@ package tarantool_story_storage
 import (
 	"github.com/tarantool/go-tarantool"
 	"github.com/iHelos/tech_teddy/models/story"
-	"github.com/labstack/gommon/log"
+	"encoding/json"
+	"log"
 )
 
 type StorageConnection struct {
@@ -78,6 +79,15 @@ func (con StorageConnection) GetMyStories(login string) ([]story.Story, error) {
 	answer, err := con.Call("getUserStories", []interface{}{login})
 	stories, err := DeserializeStoryArray(answer)
 	return stories, err
+}
+
+func (con StorageConnection) GetSubStories(id int)(substories []story.SubStory, err error){
+	answer, err := con.Call("getSubStories", []interface{}{id})
+	if err!= nil{
+		return substories,err
+	}
+	json.Unmarshal([]byte(answer.Data[0].([]interface{})[0].(string)), &substories)
+	return substories, err
 }
 func (con StorageConnection) Search(keyword string) ([]story.Story, error) {
 	answer, err := con.Call("findStory", []interface{}{keyword})

@@ -22,3 +22,8 @@ type Story struct {
 	UrlImageLarge	string		`json:"url_img_large"`
 	UrlImageSmall	string		`json:"url_img_small"`
 }
+
+type SubStory struct {
+	ChapterID        int 	`json:"chapterID"`
+	Text string 	`json:"text"`
+}
