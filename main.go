@@ -22,6 +22,7 @@ import (
 	"google.golang.org/api/option"
 	"fmt"
 	"io/ioutil"
+	"github.com/iHelos/tech_teddy/model"
 )
 
 var userstorage *teddyUsers.UserStorage
@@ -40,6 +41,8 @@ func init() {
 		User:          config.Database.User,
 		Pass:          config.Database.Password,
 	}
+
+	model.InitDB(server,opts)
 
 	client, err := tarantool.Connect(server, opts)
 	if err != nil {
@@ -294,6 +297,6 @@ func main() {
 	})
 
 	iris.Set(iris.OptionMaxRequestBodySize(64 << 20))
-	//iris.Listen(config.Host + ":" + port)
-	iris.ListenLETSENCRYPT(config.Host + ":" + port)
+	iris.Listen(config.Host + ":" + port)
+	//iris.ListenLETSENCRYPT(config.Host + ":" + port)
 }
