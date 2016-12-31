@@ -131,7 +131,7 @@ local function bootstrap()
     space:create_index('primary', {type = 'hash', parts = { 1, 'string'}})
     -- name, email, password, audios, bears
     local profilespace = box.schema.create_space('profile')
-    profilespace:create_index('primary', {type = 'hash', parts = {1, 'string'}})
+    profilespace:create_index('primary', {type = 'tree', parts = {1, 'unsigned'}})
     --
     local toyspace = box.schema.create_space('toy')
     toyspace:create_index('primary', {type = 'hash', parts = {1, 'unsigned'}})
@@ -318,6 +318,11 @@ function findStory(str)
 end
 
 function addStory(name, description, author, duration, price, category)
+    local s = box.space.audio:auto_increment{category, name, price,duration, description, author}
+    return s
+end
+
+function addUser(emai, description, author, duration, price, category)
     local s = box.space.audio:auto_increment{category, name, price,duration, description, author}
     return s
 end

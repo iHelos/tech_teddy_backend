@@ -4,9 +4,7 @@ import (
 	teddyUsers "github.com/iHelos/tech_teddy/models/user"
 	"github.com/tarantool/go-tarantool"
 	"log"
-
 	"golang.org/x/crypto/bcrypt"
-
 	"errors"
 )
 
