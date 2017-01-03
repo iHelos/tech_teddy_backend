@@ -7,38 +7,38 @@ import (
 	"github.com/labstack/gommon/log"
 )
 type Story struct {
-	ID               int
-	Category         int
-	Name             string
-	Price            int
-	Duration         string
-	Description      string
-	AuthorID         int
-	Roled            bool
-	DurationSplitted Duration
-	ImgUrls          UrlImage
-	Parts            []StoryPart
+	ID               int `json:"id"`
+	Category         int `json:"category"`
+	Name             string `json:"name"`
+	Price            int `json:"price"`
+	Duration         string `json:"duration"`
+	Description      string `json:"description"`
+	AuthorID         int `json:"authorID"`
+	Roled            bool `json:"roled"`
+	DurationSplitted Duration `json:"duration_splitted"`
+	ImgUrls          UrlImage `json:"img_urls"`
+	Parts            []StoryPart `json:"story_parts"`
 }
 
 type StoryPart struct {
-	Text string
-	Part string
-	Audio UrlAudio
+	Text string `json:"text"`
+	Part string `json:"title"`
+	Audio UrlAudio `json:"audio_urls"`
 }
 
 type Duration struct {
-	Minutes int
-	Seconds int
+	Minutes int `json:"minutes"`
+	Seconds int `json:"seconds"`
 }
 
 type UrlImage struct {
-	Small string
-	Large string
+	Small string `json:"small"`
+	Large string `json:"large"`
 }
 
 type UrlAudio struct {
-	Raw 	 string
-	Original string
+	Raw 	 string `json:"raw"`
+	Original string `json:"original"`
 }
 //1) ID 		int
 //1.1) Category
