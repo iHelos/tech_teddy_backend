@@ -10,6 +10,7 @@ import (
 	. "github.com/iHelos/tech_teddy/helper"
 	"golang.org/x/crypto/bcrypt"
 	"fmt"
+	"github.com/kataras/go-errors"
 )
 
 const (
@@ -17,6 +18,7 @@ const (
 )
 func ParseToken(ctx *iris.Context) (int, error){
 	signedtoken := ctx.Request.Header.Get("Authorization")
+	log.Print(signedtoken)
 	token, err := jwt.Parse(string(signedtoken), func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return "", fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -27,10 +29,10 @@ func ParseToken(ctx *iris.Context) (int, error){
 		return 0, err
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		if login, ok := claims["id"].(int); ok {
-			return login, nil
+		if login, ok := claims["id"].(float64); ok {
+			return int(login), nil
 		} else {
-			return 0, err
+			return 0, errors.New("bad jwt")
 		}
 	} else {
 		return 0,err
