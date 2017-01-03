@@ -306,15 +306,21 @@ func GetStory(id int) (story Story, err error){
 	return Story{}, nil
 }
 func GetStoriesByUser(user_id int) (story []Story, err error){
-	var stories []Story
+	var stories [][]Story
 	err = client.Call17Typed("getUserStories", []interface{}{user_id}, &stories)
-	return stories, nil
+	if err!=nil || len(stories)<1{
+		return []Story{}, err
+	}
+	return stories[0], err
 }
 
 func Search(str string)(story []Story, err error){
-	var stories []Story
+	var stories [][]Story
 	err = client.Call17Typed("findStory", []interface{}{str}, &stories)
-	return stories, nil
+	if err!=nil || len(stories)<1{
+		return []Story{}, err
+	}
+	return stories[0], err
 }
 
 const limit int = 15

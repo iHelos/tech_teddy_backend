@@ -187,6 +187,6 @@ func (user *NewProfile) Validate() error{
 }
 
 func AddStory(id int, sid int) (error){
-	_, err := client.Call("AddStory", []interface{}{id, sid})
+	_, err := client.Call("likeStory", []interface{}{id, sid})
 	return err
 }
