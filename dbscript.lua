@@ -236,10 +236,10 @@ function getAllCategoryStories(category, offset, limit, order, ordertype)
     return stories
 end
 
-function getUserStories(userLogin)
-    user = box.space.profile:get{userLogin}
+function getUserStories(userID)
+    user = box.space.user:get{userID}
     stories = {}
-    for i, v in ipairs(user[4]) do
+    for i, v in ipairs(user[5]) do
         tempstory = box.space.audio:get{v}
         table.insert(stories,tempstory)
     end
@@ -255,8 +255,8 @@ function has_value (tab, val)
     return false
 end
 
-function buyStory(userLogin, storyid)
-    user = box.space.profile:get{userLogin}
+function addStory(id, storyid)
+    user = box.space.user:get{id}
     story = box.space.audio:get{storyid}
     if user == nil then
         return error("no such user")
@@ -264,13 +264,13 @@ function buyStory(userLogin, storyid)
     if story == nil then
         return error("no such story")
     end
-    stories = user[4]
+    stories = user[5]
     if has_value(stories, storyid) then
         return error("already bought")
     end
     table.insert(stories, storyid)
     table.sort(stories)
-    box.space.profile:update(userLogin, {{'=', 4, stories}})
+    box.space.profile:update(userLogin, {{'=', 5, stories}})
     return stories
 end
 

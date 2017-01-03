@@ -11,6 +11,11 @@ var client *tarantool.Connection = nil
 
 func init() {
 	msgpack.Register(reflect.TypeOf(Profile{}), encodeProfile, decodeProfile)
+	msgpack.Register(reflect.TypeOf(Story{}), encodeStory, decodeStory)
+	msgpack.Register(reflect.TypeOf(StoryPart{}), encodeStoryPart, decodeStoryPart)
+	msgpack.Register(reflect.TypeOf(Duration{}), encodeDuration, decodeDuration)
+	msgpack.Register(reflect.TypeOf(UrlImage{}), encodeUrlImage, decodeUrlImage)
+	msgpack.Register(reflect.TypeOf(UrlAudio{}), encodeUrlAudio, decodeUrlAudio)
 }
 
 func InitDB(server string, opts tarantool.Opts){
@@ -19,9 +24,4 @@ func InitDB(server string, opts tarantool.Opts){
 	if err != nil {
 		log.Fatalf("Failed to connect: %s", err.Error())
 	}
-	asd := Profile{ID:1, Name:"wow", Email:"het", Likes:[]int{1,2,3}}
-	kek, err := updateProfile(asd)
-	log.Print(kek)
-	kek,err = getProfile(1)
-	log.Print(err)
 }
