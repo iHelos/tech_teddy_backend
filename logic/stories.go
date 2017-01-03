@@ -1,9 +1,8 @@
-package store
+package logic
 
 import (
 	"github.com/kataras/iris"
-	"github.com/iHelos/tech_teddy/models/story"
-	"github.com/iHelos/tech_teddy/models/user"
+	"github.com/iHelos/tech_teddy/model"
 	"github.com/labstack/gommon/log"
 	"strconv"
 	"strings"
@@ -11,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-//	"github.com/bobertlo/go-mpg123/mpg123"
 	"os/exec"
 	"encoding/json"
 	"cloud.google.com/go/storage"
@@ -19,36 +17,24 @@ import (
 	"time"
 )
 
-func BuyStory(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
-	var stories = []story.Story{}
-	login, err := user.GetLogin(ctx)
+func GetMyStories(ctx *iris.Context) ([]model.Story, error) {
+	var stories = []model.Story{}
+	id, err := ParseToken(ctx)
 	if (err != nil){
 		return stories, err
 	}
-	stories, err = (*storage).GetMyStories(login)
+	stories, err = model.GetStoriesByUser(id)
 	return stories, err
 }
 
-func GetMyStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
-	var stories = []story.Story{}
-	login, err := user.GetLogin(ctx)
-	if (err != nil){
-		log.Print(login, err)
-		return stories, err
-	}
-	stories, err = (*storage).GetMyStories(login)
-	return stories, err
-}
-
-func FindStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
-	var stories = []story.Story{}
+func FindStories(ctx *iris.Context) ([]model.Story, error) {
+	var stories = []model.Story{}
 	keyword := ctx.FormValueString("keyword")
 	if len(keyword) < 3{
 		return stories, nil
 	}
 	keyword = strings.ToLower(keyword)
-	log.Print(keyword)
-	stories, err := (*storage).Search(keyword)
+	stories, err := model.Search(keyword)
 	return stories, err
 }
 
@@ -59,18 +45,18 @@ type StoriesParams struct{
 	Order_Type string `form:"ordtype"`
 }
 
-func GetStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error){
+func GetStories(ctx *iris.Context) ([]model.Story, error){
 	getStoriesParams := StoriesParams{}
 	getStoriesParams.Cat, _ = strconv.Atoi(ctx.FormValueString("cat"))
 	getStoriesParams.Page, _ = strconv.Atoi(ctx.FormValueString("page"))
 	getStoriesParams.Order = ctx.FormValueString("order")
 	getStoriesParams.Order_Type = ctx.FormValueString("ordtype")
-	var stories = []story.Story{}
+	var stories []model.Story
 	var err error
 	if (getStoriesParams.Cat == 0){
-		stories, err = (*storage).GetAll(getStoriesParams.Order, getStoriesParams.Order_Type, getStoriesParams.Page)
+		stories, err = model.GetAll(getStoriesParams.Order, getStoriesParams.Order_Type, getStoriesParams.Page)
 	}else {
-		stories, err = (*storage).GetAllByCategory(getStoriesParams.Order, getStoriesParams.Order_Type, getStoriesParams.Page, getStoriesParams.Cat)
+		stories, err = model.GetAllByCategory(getStoriesParams.Order, getStoriesParams.Order_Type, getStoriesParams.Page, getStoriesParams.Cat)
 	}
 	return stories,err
 }
@@ -80,7 +66,7 @@ type Category struct {
 	Name string `json:"name"`
 }
 
-func GetCategories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]Category, error){
+func GetCategories(ctx *iris.Context) ([]Category, error){
 	var categories = make([]Category, 3)
 	categories[0] = Category{ID:1, Name:"сказки"}
 	categories[1] = Category{ID:2, Name:"колыбельные"}
@@ -100,15 +86,18 @@ func getFileForm(ctx *iris.Context, str string) (multipart.File, error){
 	return file, nil
 }
 
-func AddStory(ctx *iris.Context, storage *story.StoryStorageEngine) (int, error) {
-	var story_obj = story.Story{}
-	err := json.Unmarshal(ctx.Request.Body(), &story_obj)
-	log.Print(story_obj)
+func AddStory(ctx *iris.Context) (error) {
+	var story_obj = model.Story{}
+	id, err := ParseToken(ctx)
 	if err != nil {
-		return 0, err
+		return err
 	}
-	id,err := (*storage).Create(story_obj)
-	return id, err
+	err = json.Unmarshal(ctx.Request.Body(), &story_obj)
+	if err != nil {
+		return err
+	}
+	err = model.AddStory(id, story_obj.ID)
+	return  err
 }
 
 func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) bool {
