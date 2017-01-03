@@ -18,15 +18,9 @@ func (l *fileloggerMiddleware) Serve(ctx *iris.Context) {
 
 func  getInfo(ctx *iris.Context) string{
 	var path, method, status, ip, request string
-	path = ctx.PathString()
-	method = ctx.MethodString()
-	request = ctx.Request.String()
-
+	path = ctx.Path()
+	method = ctx.Method()
 	ctx.Next()
-
-	status = strconv.Itoa(ctx.Response.StatusCode())
-	ip = ctx.RemoteAddr()
-
 	result := fmt.Sprintf("%s %s %s %s \n %s \n\n", path, method, status, ip, request)
 	return result
 }

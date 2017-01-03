@@ -6,18 +6,17 @@ import (
 	"log"
 	"time"
 	"os"
-	//sessionDB "github.com/iHelos/tech_teddy/models/session"
 	"github.com/iHelos/tech_teddy/deploy-config"
 	"github.com/iris-contrib/middleware/cors"
-	//"github.com/iris-contrib/middleware/recovery"
 	"cloud.google.com/go/storage"
 	"context"
 	"google.golang.org/api/option"
 	"fmt"
 	"io/ioutil"
 	"github.com/iHelos/tech_teddy/model"
-	"github.com/iHelos/tech_teddy/helper"
 	"github.com/iHelos/tech_teddy/view"
+	"github.com/iris-contrib/middleware/logger"
+	"github.com/iris-contrib/middleware/recovery"
 )
 
 var config *deploy_config.DeployConfiguration
@@ -38,7 +37,9 @@ func init() {
 
 	model.InitDB(server,opts)
 
-	//iris.Use(recovery.New())
+	iris.Use(logger.New())
+	iris.Use(recovery.New())
+
 	iris.Config.IsDevelopment = false
 	iris.Config.Gzip = false
 	iris.Config.Charset = "UTF-8"
@@ -93,7 +94,7 @@ func main() {
 	cors_obj := cors.New(cors_config)
 	iris.Use(cors_obj)
 
-	iris.Use(helper.New("logs/all.log"))
+	//iris.Use(helper.New("logs/all.log"))
 
 	iris.Get("/", view.RenderPage)
 
@@ -111,7 +112,7 @@ func main() {
 
 	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
-	apiuser.Use(helper.New("logs/userlog.log"))
+	//apiuser.Use(helper.New("logs/userlog.log"))
 	apiuser.Post("/login", view.Login)
 	apiuser.Post("/signup", view.Register)
 	apiuser.Get("/mystories", view.MustBeLogged, view.GetUserStories)
@@ -134,7 +135,7 @@ func main() {
 	apistore.Any("/buy", view.UserLikeStory)
 	apistore.Get("/search/", view.Search)
 
-	iris.Set(iris.OptionMaxRequestBodySize(64 << 20))
+//	iris.Set(iris.OptionMaxRequestBodySize(64 << 20))
 	iris.Listen(config.Host + ":" + port)
 	//iris.ListenLETSENCRYPT(config.Host + ":" + port)
 }
