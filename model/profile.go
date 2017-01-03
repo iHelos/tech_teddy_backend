@@ -128,6 +128,8 @@ func CheckPassword(profile Profile) (int, error){
 	err := client.SelectTyped("user", "email", 0, 1, tarantool.IterEq, []interface{}{profile.Email}, &dbProfile)
 	if err != nil {
 		return 0, err
+	} else if len(dbProfile) == 0{
+		return 0, errors.New("not found")
 	}
 	log.Print(dbProfile)
 	err = bcrypt.CompareHashAndPassword([]byte(dbProfile[0].Password), []byte(profile.Password))
