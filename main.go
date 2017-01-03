@@ -52,13 +52,13 @@ func init() {
 		option.WithServiceAccountFile("./gostorage.json"),
 	)
 	if err != nil {
-		log.Print(err)
+		log.Print("1) ", err)
 	}
 	_ = google_client
 	bkt := google_client.Bucket("hardteddy_stories")
 	attrs, err := bkt.Attrs(ctx)
 	if err != nil {
-		log.Print(err)
+		log.Print("2)", err)
 	}
 	fmt.Printf("bucket %s, created at %s, is located in %s with storage class %s\n",
 		attrs.Name, attrs.Created, attrs.Location, attrs.StorageClass)
