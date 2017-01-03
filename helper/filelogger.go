@@ -4,7 +4,6 @@ import (
 	"os"
 	"io"
 	"fmt"
-	"strconv"
 	"github.com/kataras/iris"
 )
 
