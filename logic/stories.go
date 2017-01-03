@@ -11,7 +11,6 @@ import (
 	"io"
 	"mime/multipart"
 	"os/exec"
-	"encoding/json"
 	"cloud.google.com/go/storage"
 	"context"
 	"time"
@@ -29,7 +28,7 @@ func GetMyStories(ctx *iris.Context) ([]model.Story, error) {
 
 func FindStories(ctx *iris.Context) ([]model.Story, error) {
 	var stories = []model.Story{}
-	keyword := ctx.FormValueString("keyword")
+	keyword := ctx.FormValue("keyword")
 	if len(keyword) < 3{
 		return stories, nil
 	}
@@ -47,10 +46,10 @@ type StoriesParams struct{
 
 func GetStories(ctx *iris.Context) ([]model.Story, error){
 	getStoriesParams := StoriesParams{}
-	getStoriesParams.Cat, _ = strconv.Atoi(ctx.FormValueString("cat"))
-	getStoriesParams.Page, _ = strconv.Atoi(ctx.FormValueString("page"))
-	getStoriesParams.Order = ctx.FormValueString("order")
-	getStoriesParams.Order_Type = ctx.FormValueString("ordtype")
+	getStoriesParams.Cat, _ = strconv.Atoi(ctx.FormValue("cat"))
+	getStoriesParams.Page, _ = strconv.Atoi(ctx.FormValue("page"))
+	getStoriesParams.Order = ctx.FormValue("order")
+	getStoriesParams.Order_Type = ctx.FormValue("ordtype")
 	var stories []model.Story
 	var err error
 	if (getStoriesParams.Cat == 0){
@@ -75,14 +74,14 @@ func GetCategories(ctx *iris.Context) ([]Category, error){
 }
 
 func getFileForm(ctx *iris.Context, str string) (multipart.File, error){
-	info, err := ctx.FormFile(str)
+	file, _, err := ctx.FormFile(str)
 	if(err != nil){
 		return  nil, err
 	}
-	file, err := info.Open()
-	if(err != nil){
-		return  nil, err
-	}
+	//file, err := info.Open()
+	//if(err != nil){
+	//	return  nil, err
+	//}
 	return file, nil
 }
 
@@ -92,7 +91,7 @@ func AddStory(ctx *iris.Context) (error) {
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(ctx.Request.Body(), &story_obj)
+	err = ctx.ReadJSON(&story_obj)
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,6 @@ package logic
 import (
 	"github.com/iHelos/tech_teddy/model"
 	"strings"
-	"encoding/json"
 	"github.com/kataras/iris"
 	"github.com/dgrijalva/jwt-go"
 	"log"
@@ -17,7 +16,7 @@ const (
 	hmacUserSecret = "95CCEB5921E59B285AC773E4963E1"
 )
 func ParseToken(ctx *iris.Context) (int, error){
-	signedtoken := ctx.Request.Header.Peek("Authorization")
+	signedtoken := ctx.Request.Header.Get("Authorization")
 	token, err := jwt.Parse(string(signedtoken), func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return "", fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -41,8 +40,7 @@ func ParseToken(ctx *iris.Context) (int, error){
 func Register(ctx *iris.Context) (string, string, error){
 	var user = model.NewProfile{}
 	var err error
-	err = json.Unmarshal(ctx.Request.Body(), &user)
-	log.Print(ctx.Request.Body())
+	err = ctx.ReadJSON(&user)
 	if err != nil {
 		log.Print(err)
 		UserError := NewError()
@@ -84,7 +82,7 @@ func Register(ctx *iris.Context) (string, string, error){
 }
 func Login(ctx *iris.Context) (string, string, error){
 	var user model.Profile
-	err := json.Unmarshal(ctx.Request.Body(), &user)
+	err := ctx.ReadJSON(&user)
 	if err != nil {
 		UserError := NewError()
 		UserError.Append("request", 0)
@@ -120,7 +118,7 @@ func LikeStory(ctx *iris.Context)(error){
 		return err
 	}
 	story := StoryPointer{}
-	err = json.Unmarshal(ctx.Request.Body(), &story)
+	err = ctx.ReadJSON(&story)
 	if err != nil{
 		return err
 	}
