@@ -141,7 +141,7 @@ func decodeStory(d *msgpack.Decoder, v reflect.Value) error {
 	m.Parts = make([]StoryPart, l)
 	for i := 0; i < l; i++ {
 		d.Decode(&m.Parts[i])
-		m.Parts[i].ID = strconv.Itoa(m.ID) + "_" + strconv.Itoa(i)
+		m.Parts[i].ID = strconv.Itoa(m.ID) + "_" + strconv.Itoa(i+1)
 	}
 	return nil
 }
