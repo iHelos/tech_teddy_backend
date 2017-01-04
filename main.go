@@ -98,9 +98,9 @@ func main() {
 
 	iris.Get("/", view.RenderPage)
 
-	iris.Any("/upload/story/:id", view.UploadStory)
-	iris.Any("/upload/smallimg/:id", view.UploadSmallImage)
-	iris.Any("/upload/largeimg/:id", view.UploadLargeImage)
+	iris.Post("/upload/story/:id", view.UploadStory)
+	iris.Post("/upload/smallimg/:id", view.UploadSmallImage)
+	iris.Post("/upload/largeimg/:id", view.UploadLargeImage)
 
 	//iris.Get("/story/:id", func(ctx *iris.Context) {
 	//	id := ctx.Param("id")
@@ -116,7 +116,9 @@ func main() {
 	apiuser.Post("/login", view.Login)
 	apiuser.Post("/signup", view.Register)
 	apiuser.Get("/mystories", view.MustBeLogged, view.GetUserStories)
-
+	apisocial := api.Party("/social/")
+	apisocial.Get("vk", view.VKLoginPage)
+	apisocial.Get("vk/getcode")
 	apistore := api.Party("/store/")
 	//apistore.Any("/story/add", func(ctx *iris.Context) {
 	//	story_obj, err := store.AddStory(ctx, &storystorage)
@@ -132,7 +134,7 @@ func main() {
 	//})
 	apistore.Get("/story/", view.GetStories)
 	apistore.Get("/categories/", view.GetCategories)
-	apistore.Any("/buy", view.UserLikeStory)
+	apistore.Post("/buy", view.UserLikeStory)
 	apistore.Get("/search/", view.Search)
 
 //	iris.Set(iris.OptionMaxRequestBodySize(64 << 20))

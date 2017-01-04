@@ -8,6 +8,9 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"log"
+	"net/http"
+	"io/ioutil"
+	"encoding/json"
 )
 
 var google_client *storage.Client
@@ -146,4 +149,34 @@ func Search(ctx *iris.Context) {
 			"stories":stories,
 		}))
 	}
+}
+
+func VKLoginPage(ctx *iris.Context){
+	ctx.Redirect("https://oauth.vk.com/authorize?client_id=5806269&redirect_uri=https://magicbackpack.ru/api/social/vk/getcode&scope=4194304" )
+}
+
+type vkCode struct{
+	Access_token string `json:"access_token"`
+	User_id int	`json:"user_id"`
+	Email string 	`json:"email"`
+	Error string	`json:"error"`
+}
+func GetPage(ctx *iris.Context){
+	code := ctx.GetString("code")
+	resp, err := http.Get("https://oauth.vk.com/access_token?client_id=5806269&client_secret=QQY9VWcmlhiUrNkXXznv&redirect_uri=https://magicbackpack.ru/api/social/vk/getcode&code="+code)
+	if err!=nil{
+		ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
+			"err":err.Error(),
+		}))
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	var answer vkCode
+	json.Unmarshal(body, &answer)
+	if answer.Error != ""{
+		ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
+			"err":answer.Error,
+		}))
+	}
+
 }
