@@ -118,7 +118,7 @@ func main() {
 	apiuser.Get("/mystories", view.MustBeLogged, view.GetUserStories)
 	apisocial := api.Party("/social/")
 	apisocial.Get("vk", view.VKLoginPage)
-	apisocial.Get("vk/getcode")
+	apisocial.Get("vk/getcode", view.VKGetCode)
 	apistore := api.Party("/store/")
 	//apistore.Any("/story/add", func(ctx *iris.Context) {
 	//	story_obj, err := store.AddStory(ctx, &storystorage)
