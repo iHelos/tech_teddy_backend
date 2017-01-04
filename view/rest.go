@@ -161,7 +161,7 @@ type vkCode struct{
 	Email string 	`json:"email"`
 	Error string	`json:"error"`
 }
-func GetPage(ctx *iris.Context){
+func VKGetCode(ctx *iris.Context){
 	code := ctx.GetString("code")
 	resp, err := http.Get("https://oauth.vk.com/access_token?client_id=5806269&client_secret=QQY9VWcmlhiUrNkXXznv&redirect_uri=https://magicbackpack.ru/api/social/vk/getcode&code="+code)
 	if err!=nil{
@@ -178,5 +178,7 @@ func GetPage(ctx *iris.Context){
 			"err":answer.Error,
 		}))
 	}
-
+	ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
+		"answer":answer,
+	}))
 }
