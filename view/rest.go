@@ -162,23 +162,26 @@ type vkCode struct{
 	Error string	`json:"error"`
 }
 func VKGetCode(ctx *iris.Context){
-	code := ctx.GetString("code")
+	code := ctx.URLParam("code")
 	resp, err := http.Get("https://oauth.vk.com/access_token?client_id=5806269&client_secret=QQY9VWcmlhiUrNkXXznv&redirect_uri=https://magicbackpack.ru/api/social/vk/getcode&code="+code)
 	if err!=nil{
 		ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
 			"err":err.Error(),
 		}))
+
+	} else {
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		var answer vkCode
+		json.Unmarshal(body, &answer)
+		if answer.Error != "" {
+			ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
+				"err":answer.Error,
+			}))
+		} else {
+			ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
+				"answer":answer,
+			}))
+		}
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	var answer vkCode
-	json.Unmarshal(body, &answer)
-	if answer.Error != ""{
-		ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
-			"err":answer.Error,
-		}))
-	}
-	ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
-		"answer":answer,
-	}))
 }
