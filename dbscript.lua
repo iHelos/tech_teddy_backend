@@ -131,7 +131,7 @@ local function bootstrap()
     space:create_index('primary', {type = 'hash', parts = { 1, 'string'}})
     -- name, email, password, audios, bears
     local profilespace = box.schema.create_space('profile')
-    profilespace:create_index('primary', {type = 'tree', parts = {1, 'unsigned'}})
+    profilespace:create_index('primary', {type = 'hash', parts = {1, 'string'}})
     --
     local toyspace = box.schema.create_space('toy')
     toyspace:create_index('primary', {type = 'hash', parts = {1, 'unsigned'}})
@@ -236,10 +236,10 @@ function getAllCategoryStories(category, offset, limit, order, ordertype)
     return stories
 end
 
-function getUserStories(userID)
-    user = box.space.user:get{userID}
+function getUserStories(userLogin)
+    user = box.space.profile:get{userLogin}
     stories = {}
-    for i, v in ipairs(user[5]) do
+    for i, v in ipairs(user[4]) do
         tempstory = box.space.audio:get{v}
         table.insert(stories,tempstory)
     end
@@ -255,8 +255,8 @@ function has_value (tab, val)
     return false
 end
 
-function addStory(id, storyid)
-    user = box.space.user:get{id}
+function buyStory(userLogin, storyid)
+    user = box.space.profile:get{userLogin}
     story = box.space.audio:get{storyid}
     if user == nil then
         return error("no such user")
@@ -264,13 +264,13 @@ function addStory(id, storyid)
     if story == nil then
         return error("no such story")
     end
-    stories = user[5]
+    stories = user[4]
     if has_value(stories, storyid) then
         return error("already bought")
     end
     table.insert(stories, storyid)
     table.sort(stories)
-    box.space.profile:update(userLogin, {{'=', 5, stories}})
+    box.space.profile:update(userLogin, {{'=', 4, stories}})
     return stories
 end
 
@@ -322,7 +322,16 @@ function addStory(name, description, author, duration, price, category)
     return s
 end
 
-function addUser(emai, description, author, duration, price, category)
-    local s = box.space.audio:auto_increment{category, name, price,duration, description, author}
+function addSubStory(id)
+    local s = box.space.audio:get{id}
+    if s == null then
+        return error("no such story")
+    end
+    local arr = s[17]
+
     return s
+end
+
+function getSubStories(id)
+    return json.encode(box.space.audio:get(id)[17])
 end

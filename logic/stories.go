@@ -1,8 +1,9 @@
-package logic
+package store
 
 import (
 	"github.com/kataras/iris"
-	"github.com/iHelos/tech_teddy/model"
+	"github.com/iHelos/tech_teddy/models/story"
+	"github.com/iHelos/tech_teddy/models/user"
 	"github.com/labstack/gommon/log"
 	"strconv"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+//	"github.com/bobertlo/go-mpg123/mpg123"
 	"os/exec"
 	"encoding/json"
 	"cloud.google.com/go/storage"
@@ -17,24 +19,40 @@ import (
 	"time"
 )
 
-func GetMyStories(ctx *iris.Context) ([]model.Story, error) {
-	var stories = []model.Story{}
-	id, err := ParseToken(ctx)
+const stories_url string  = "http://storage.googleapis.com/hardteddy_stories/"
+const img_url string  = "https://storage.googleapis.com/hardteddy_images/"
+
+
+func BuyStory(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
+	var stories = []story.Story{}
+	login, err := user.GetLogin(ctx)
 	if (err != nil){
 		return stories, err
 	}
-	stories, err = model.GetStoriesByUser(id)
+	stories, err = (*storage).GetMyStories(login)
 	return stories, err
 }
 
-func FindStories(ctx *iris.Context) ([]model.Story, error) {
-	var stories = []model.Story{}
+func GetMyStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
+	var stories = []story.Story{}
+	login, err := user.GetLogin(ctx)
+	if (err != nil){
+		log.Print(login, err)
+		return stories, err
+	}
+	stories, err = (*storage).GetMyStories(login)
+	return stories, err
+}
+
+func FindStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error) {
+	var stories = []story.Story{}
 	keyword := ctx.FormValueString("keyword")
 	if len(keyword) < 3{
 		return stories, nil
 	}
 	keyword = strings.ToLower(keyword)
-	stories, err := model.Search(keyword)
+	log.Print(keyword)
+	stories, err := (*storage).Search(keyword)
 	return stories, err
 }
 
@@ -45,20 +63,26 @@ type StoriesParams struct{
 	Order_Type string `form:"ordtype"`
 }
 
-func GetStories(ctx *iris.Context) ([]model.Story, error){
+func GetStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.Story, error){
 	getStoriesParams := StoriesParams{}
 	getStoriesParams.Cat, _ = strconv.Atoi(ctx.FormValueString("cat"))
 	getStoriesParams.Page, _ = strconv.Atoi(ctx.FormValueString("page"))
 	getStoriesParams.Order = ctx.FormValueString("order")
 	getStoriesParams.Order_Type = ctx.FormValueString("ordtype")
-	var stories []model.Story
+	var stories = []story.Story{}
 	var err error
 	if (getStoriesParams.Cat == 0){
-		stories, err = model.GetAll(getStoriesParams.Order, getStoriesParams.Order_Type, getStoriesParams.Page)
+		stories, err = (*storage).GetAll(getStoriesParams.Order, getStoriesParams.Order_Type, getStoriesParams.Page)
 	}else {
-		stories, err = model.GetAllByCategory(getStoriesParams.Order, getStoriesParams.Order_Type, getStoriesParams.Page, getStoriesParams.Cat)
+		stories, err = (*storage).GetAllByCategory(getStoriesParams.Order, getStoriesParams.Order_Type, getStoriesParams.Page, getStoriesParams.Cat)
 	}
 	return stories,err
+}
+
+func GetSubStories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]story.SubStory, error){
+	id_str := ctx.Param("id")
+	id, _ := strconv.Atoi(id_str)
+	return (*storage).GetSubStories(id)
 }
 
 type Category struct {
@@ -66,11 +90,12 @@ type Category struct {
 	Name string `json:"name"`
 }
 
-func GetCategories(ctx *iris.Context) ([]Category, error){
-	var categories = make([]Category, 3)
+func GetCategories(ctx *iris.Context, storage *story.StoryStorageEngine) ([]Category, error){
+	var categories = make([]Category, 4)
 	categories[0] = Category{ID:1, Name:"сказки"}
 	categories[1] = Category{ID:2, Name:"колыбельные"}
 	categories[2] = Category{ID:3, Name:"помощник"}
+	categories[3] = Category{ID:4, Name:"интерактивные"}
 	return categories, nil
 }
 
@@ -86,22 +111,45 @@ func getFileForm(ctx *iris.Context, str string) (multipart.File, error){
 	return file, nil
 }
 
-func AddStory(ctx *iris.Context) (error) {
-	var story_obj = model.Story{}
-	id, err := ParseToken(ctx)
+func AddStory(ctx *iris.Context, storage *story.StoryStorageEngine) (int, error) {
+	var story_obj = story.Story{}
+	err := json.Unmarshal(ctx.Request.Body(), &story_obj)
+	log.Print(story_obj)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	err = json.Unmarshal(ctx.Request.Body(), &story_obj)
-	if err != nil {
-		return err
-	}
-	err = model.AddStory(id, story_obj.ID)
-	return  err
+	id,err := (*storage).Create(story_obj)
+	return id, err
 }
 
-func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) bool {
+func sendToGoogle(file *os.File, name, format, contentType string, storybckt *storage.BucketHandle){
+	obj := storybckt.Object(name+format)
+	w := obj.NewWriter(context.Background())
+	w.ContentType = contentType
+	w.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
+	defer w.Close()
+	buf := make([]byte, 2048*16)
+	for {
+		len, err := file.Read(buf)
+		w.Write(buf[0:len])
+		if err != nil {
+			break
+		}
+	}
+}
+
+func getSize(file *os.File) int64{
+	fi, err := file.Stat()
+	if(err != nil){
+		log.Print(err)
+	}
+	return fi.Size()
+}
+
+func AddStoryFile(ctx *iris.Context, id string, tag string, googlestorage *storage.Client, storage *story.StoryStorageEngine) bool {
 	// Get the file from the request
+	name := id + tag
+
 	audio, err := getFileForm(ctx, "file")
 	if err != nil{
 		fmt.Println(err)
@@ -110,15 +158,15 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 	defer audio.Close()
 
 
-	out1, err := os.OpenFile("./static/audio/"+string(id)+".mp3", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	out1, err := os.OpenFile("./static/audio/"+ name + ".mp3", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		fmt.Println(err)
 		return false
 	}
 	defer out1.Close()
 	io.Copy(out1, audio)
-	dir1 :=  "static/audio/"+id+".raw"
-	dir2 :=  "static/audio/"+id+".mp3"
+	dir1 :=  "static/audio/"+name+".raw"
+	dir2 :=  "static/audio/"+name+".mp3"
 	cmd := exec.Command("mpg123","-O", dir1, "--rate", "8000",  "--mono", "-e", "u8", dir2)
 	err = cmd.Start()
 	done := make(chan error, 1)
@@ -141,27 +189,39 @@ func AddStoryFile(ctx *iris.Context, id string, googlestorage *storage.Client) b
 	//asd, err = exec.Command("pwd").CombinedOutput()
 	storybckt := (*googlestorage).Bucket("hardteddy_stories")
 	if(err != nil){
-
+		log.Print(err)
 	}
-	file, err := os.Open(dir1)
-	defer file.Close()
-	obj := storybckt.Object(id+".raw")
-	w := obj.NewWriter(context.Background())
-	w.ContentType = "audio/basic"
-	//w.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
-	defer w.Close()
-	buf := make([]byte, 2048*16)
-	for {
-		len, err := file.Read(buf)
-		w.Write(buf[0:len])
-		if err != nil {
-			break
-		}
+	file1, err := os.Open(dir1)
+	defer file1.Close()
+
+	file2, err := os.Open(dir2)
+	defer file2.Close()
+
+	sendToGoogle(file1, name, ".raw", "audio/basic", storybckt)
+	sendToGoogle(file2, "mp3/"+ name, ".mp3", "audio/mpeg", storybckt)
+
+	fi, err := file1.Stat()
+	id_int, err := strconv.Atoi(id)
+	log.Print(id_int)
+	switch tag {
+	case "f":
+		(*storage).SetUrlFemale(id_int,stories_url + name  + ".raw")
+		(*storage).SetUrlMp3Female(id_int,stories_url + "mp3/" + name  + ".mp3")
+		(*storage).SetSizeF(id_int, fi.Size())
+		break;
+	case "b":
+		(*storage).SetUrlBackground(id_int,stories_url + "/mp3/" +  name  + ".mp3")
+		break;
+	default:
+		(*storage).SetUrlMale (id_int,stories_url + name  + ".raw")
+		(*storage).SetUrlMp3Male(id_int,stories_url + "mp3/" + name  + ".mp3")
+		(*storage).SetSizeM(id_int,fi.Size())
+		break;
 	}
 	return true
 }
 
-func AddStorySmallImg(ctx *iris.Context, id string, googlestorage *storage.Client) bool {
+func AddStorySmallImg(ctx *iris.Context, id string, googlestorage *storage.Client, storyStorage *story.StoryStorageEngine) bool {
 	// Get the file from the request
 	small_img, err := getFileForm(ctx, "file")
 	if err != nil{
@@ -187,10 +247,12 @@ func AddStorySmallImg(ctx *iris.Context, id string, googlestorage *storage.Clien
 			break
 		}
 	}
+	id_int, err := strconv.Atoi(id)
+	(*storyStorage).SetUrlImageSmall (id_int, img_url + "small/"+id+".jpg")
 	return true
 }
 
-func AddStoryLargeImg(ctx *iris.Context, id string, googlestorage *storage.Client) bool {
+func AddStoryLargeImg(ctx *iris.Context, id string, googlestorage *storage.Client, storyStorage *story.StoryStorageEngine) bool {
 	large_img, err := getFileForm(ctx, "file")
 	if err != nil{
 		fmt.Println(err)
@@ -215,6 +277,8 @@ func AddStoryLargeImg(ctx *iris.Context, id string, googlestorage *storage.Clien
 			break
 		}
 	}
+	id_int, err := strconv.Atoi(id)
+	(*storyStorage).SetUrlImageLarge (id_int, img_url + "large/"+id+".jpg")
 	return true
 }
 func AddStoryFiles(ctx *iris.Context, id string) bool {
