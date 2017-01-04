@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"fmt"
 	"github.com/labstack/gommon/log"
+	"strconv"
 )
 type Story struct {
 	ID               int `json:"id"`
@@ -21,6 +22,7 @@ type Story struct {
 }
 
 type StoryPart struct {
+	ID string `json:"id"`
 	Text string `json:"text"`
 	Part string `json:"title"`
 	Audio UrlAudio `json:"audio_urls"`
@@ -139,6 +141,7 @@ func decodeStory(d *msgpack.Decoder, v reflect.Value) error {
 	m.Parts = make([]StoryPart, l)
 	for i := 0; i < l; i++ {
 		d.Decode(&m.Parts[i])
+		m.Parts[i].ID = strconv.Itoa(m.ID) + "_" + strconv.Itoa(i)
 	}
 	return nil
 }
