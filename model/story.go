@@ -292,6 +292,17 @@ func CreateStory(new_story Story) (created_story Story, err error){
 	}
 	return stories[0], err
 }
+
+func CreateStory_SpecifyID(new_story Story) (created_story Story, err error){
+	var stories []Story
+	err = client.InsertTyped("audio", new_story, &stories)
+	if (err!=nil){
+		log.Print(err)
+		return Story{}, err
+	}
+	return stories[0], err
+}
+
 func UpdateStory(new_story Story) (updated_story Story, err error){
 	var stories []Story
 	//err = client.ReplaceTyped("user", new_profile, &profiles)
