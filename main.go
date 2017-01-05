@@ -116,9 +116,14 @@ func main() {
 	apiuser.Post("/login", view.Login)
 	apiuser.Post("/signup", view.Register)
 	apiuser.Get("/mystories", view.MustBeLogged, view.GetUserStories)
+
 	apisocial := api.Party("/social/")
 	apisocial.Get("vk", view.VKLoginPage)
 	apisocial.Get("vk/getcode", view.VKGetCode)
+
+	apisocial.Get("ok", view.OKLoginPage)
+	apisocial.Get("ok/getcode", view.OKGetCode)
+
 	apistore := api.Party("/store/")
 	//apistore.Any("/story/add", func(ctx *iris.Context) {
 	//	story_obj, err := store.AddStory(ctx, &storystorage)
@@ -138,6 +143,6 @@ func main() {
 	apistore.Get("/search/", view.Search)
 
 //	iris.Set(iris.OptionMaxRequestBodySize(64 << 20))
-	//iris.Listen(config.Host + ":" + port)
-	iris.ListenLETSENCRYPT(config.Host + ":" + port)
+	iris.Listen(config.Host + ":" + port)
+//	iris.ListenLETSENCRYPT(config.Host + ":" + port)
 }

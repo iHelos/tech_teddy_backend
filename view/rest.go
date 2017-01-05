@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
+	"fmt"
 )
 
 var google_client *storage.Client
@@ -179,7 +180,48 @@ func VKGetCode(ctx *iris.Context){
 				"err":answer.Error,
 			}))
 		} else {
+			ctx.JSON(iris.StatusOK, helper.GetResponse(0, map[string]interface{}{
+				"answer":answer,
+			}))
+		}
+	}
+}
+
+func OKLoginPage(ctx *iris.Context){
+	ctx.Redirect("https://connect.ok.ru/oauth/authorize?client_id=1249370880&scope=GET_EMAIL&response_type=code&redirect_uri=https://magicbackpack.ru/api/social/ok/getcode" )
+}
+
+func OKGetCode(ctx *iris.Context){
+	code := ctx.URLParam("code")
+	if (code == "") {
+		err := ctx.URLParam("error")
+		ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
+			"err":err,
+		}))
+		return
+	}
+
+	OKurl := fmt.Sprintf("https://api.ok.ru/oauth/token.do?code=%s&client_id=%s&client_secret=%s&redirect_uri=%s&grant_type=%s",
+	code, "1249370880", "95224E00D3EE4887818C6A48", "https://magicbackpack.ru/api/social/ok/getcode", "authorization_code")
+
+	resp, err := http.Post(OKurl,"application/json", nil)
+	if err!=nil{
+		ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
+			"err":err.Error(),
+		}))
+
+	} else {
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		log.Print(string(body))
+		var answer vkCode
+		json.Unmarshal(body, &answer)
+		if answer.Error != "" {
 			ctx.JSON(iris.StatusOK, helper.GetResponse(1, map[string]interface{}{
+				"err":answer.Error,
+			}))
+		} else {
+			ctx.JSON(iris.StatusOK, helper.GetResponse(0, map[string]interface{}{
 				"answer":answer,
 			}))
 		}
