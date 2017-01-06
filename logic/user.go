@@ -224,7 +224,7 @@ func OKGetCode(ctx *iris.Context) (string, string, error)  {
 	md5_code := md5.Sum([]byte(answer.Access_token + secret_key))
 	params := append([]byte("application_key=CBAEOIHLEBABABABAformat=jsonmethod=users.getCurrentUser"), md5_code[:]...)
 	sig := md5.Sum(params)
-	new_url := fmt.Sprintf("https://api.ok.ru/fb.do?application_key=CBAEOIHLEBABABABA&format=json&method=users.getCurrentUser&sig=%s&access_token=%s", string(sig), answer.Access_token)
+	new_url := fmt.Sprintf("https://api.ok.ru/fb.do?application_key=CBAEOIHLEBABABABA&format=json&method=users.getCurrentUser&sig=%s&access_token=%s", string(sig[:]), answer.Access_token)
 	new_resp, err := http.Get(new_url)
 	if err!=nil{
 		return "", "", err
