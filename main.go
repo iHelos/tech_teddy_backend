@@ -97,22 +97,15 @@ func main() {
 	//iris.Use(helper.New("logs/all.log"))
 
 	iris.Get("/", view.RenderPage)
-
 	iris.Post("/upload/story/:id", view.UploadStory)
 	iris.Post("/upload/smallimg/:id", view.UploadSmallImage)
 	iris.Post("/upload/largeimg/:id", view.UploadLargeImage)
-
-	//iris.Get("/story/:id", func(ctx *iris.Context) {
-	//	id := ctx.Param("id")
-	//	ctx.SendFile("./static/audio/" + id + ".raw", id + ".raw")
-	//})
 
 	api := iris.Party("/api/")
 	api.Get("/", view.ApiRedirect)
 
 	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
-	//apiuser.Use(helper.New("logs/userlog.log"))
 	apiuser.Post("/login", view.Login)
 	apiuser.Post("/signup", view.Register)
 	apiuser.Get("/mystories", view.MustBeLogged, view.GetUserStories)
@@ -128,18 +121,6 @@ func main() {
 	apisocial.Get("error")
 
 	apistore := api.Party("/store/")
-	//apistore.Any("/story/add", func(ctx *iris.Context) {
-	//	story_obj, err := store.AddStory(ctx, &storystorage)
-	//	if (err != nil) {
-	//		ctx.JSON(iris.StatusOK, REST.GetResponse(1, map[string]interface{}{
-	//			"err":err.Error(),
-	//		}))
-	//	}else {
-	//		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
-	//			"story":story_obj,
-	//		}))
-	//	}
-	//})
 	apistore.Get("/story/", view.GetStories)
 	apistore.Get("/categories/", view.GetCategories)
 	apistore.Post("/buy", view.UserLikeStory)

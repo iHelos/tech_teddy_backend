@@ -6,26 +6,28 @@ import (
 	"fmt"
 	"github.com/labstack/gommon/log"
 	"strconv"
+	"github.com/tarantool/go-tarantool"
 )
 type Story struct {
-	ID               int `json:"id"`
-	Category         int `json:"category"`
-	Name             string `json:"name"`
-	Price            int `json:"price"`
-	Duration         string `json:"duration"`
-	Description      string `json:"description"`
-	AuthorID         int `json:"authorID"`
-	Roled            bool `json:"roled"`
-	DurationSplitted Duration `json:"duration_splitted"`
-	ImgUrls          UrlImage `json:"img_urls"`
-	Parts            []StoryPart `json:"story_parts"`
+	ID               int 		`json:"id"`
+	Category         int 		`json:"category"`
+	Name             string 	`json:"name"`
+	Price            int 		`json:"price"`
+	Duration         string 	`json:"duration"`
+	Description      string 	`json:"description"`
+	AuthorID         int 		`json:"authorID"`
+	Roled            bool 		`json:"roled"`
+	DurationSplitted Duration 	`json:"duration_splitted"`
+	ImgUrls          UrlImage 	`json:"img_urls"`
+	Parts            []StoryPart 	`json:"story_parts"`
 }
 
 type StoryPart struct {
-	ID string `json:"id"`
-	Text string `json:"text"`
-	Part string `json:"title"`
-	Audio UrlAudio `json:"audio_urls"`
+	ID 	string 		`json:"id"`
+	Text 	string 		`json:"text"`
+	Part 	string 		`json:"title"`
+	Audio 	UrlAudio 	`json:"audio_urls"`
+	Size	int 		`json:"size"`
 }
 
 type Duration struct {
@@ -151,7 +153,7 @@ func decodeStory(d *msgpack.Decoder, v reflect.Value) error {
 //3) Audio 	UrlAudio
 func encodeStoryPart(e *msgpack.Encoder, v reflect.Value) error {
 	m := v.Interface().(StoryPart)
-	if err := e.EncodeArrayLen(3); err != nil {
+	if err := e.EncodeArrayLen(4); err != nil {
 		return err
 	}
 	if err := e.EncodeString(m.Text); err != nil {
@@ -161,6 +163,9 @@ func encodeStoryPart(e *msgpack.Encoder, v reflect.Value) error {
 		return err
 	}
 	e.Encode(m.Audio)
+	if err := e.EncodeInt(m.Size); err != nil {
+		return err
+	}
 	return nil
 }
 func decodeStoryPart(d *msgpack.Decoder, v reflect.Value) error {
@@ -170,7 +175,7 @@ func decodeStoryPart(d *msgpack.Decoder, v reflect.Value) error {
 	if l, err = d.DecodeArrayLen(); err != nil {
 		return err
 	}
-	if l != 3 {
+	if l != 4 {
 		return fmt.Errorf("array len doesn't match: %d", l)
 	}
 	if m.Text, err = d.DecodeString(); err != nil {
@@ -180,6 +185,9 @@ func decodeStoryPart(d *msgpack.Decoder, v reflect.Value) error {
 		return err
 	}
 	d.Decode(&m.Audio)
+	if m.Size, err = d.DecodeInt(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -308,16 +316,19 @@ func CreateStory_SpecifyID(new_story Story) (created_story Story, err error){
 
 func UpdateStory(new_story Story) (updated_story Story, err error){
 	var stories []Story
-	//err = client.ReplaceTyped("user", new_profile, &profiles)
+	err = client.ReplaceTyped("audio", new_story, &stories)
+	if err!=nil || len(stories)<1{
+		return Story{}, err
+	}
 	return stories[0], nil
 }
 func GetStory(id int) (story Story, err error){
-	//var profiles []Profile
-	//err = client.SelectTyped("user", "primary", 0,1, tarantool.IterEq, []interface{}{uint(id)}, &profiles)
-	//if len(profiles)>0 {
-	//	return profiles[0], err
-	//}
-	return Story{}, nil
+	var stories []Story
+	err = client.SelectTyped("audio", "primary", 0,1, tarantool.IterEq, []interface{}{uint(id)}, &stories)
+	if len(stories)>0 {
+		return stories[0], err
+	}
+	return Story{}, err
 }
 func GetStoriesByUser(user_id int) (story []Story, err error){
 	var stories [][]Story
