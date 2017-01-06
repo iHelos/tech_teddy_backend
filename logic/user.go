@@ -17,6 +17,7 @@ import (
 	"time"
 	"math/rand"
 	"crypto/md5"
+	"encoding/hex"
 )
 
 const (
@@ -199,6 +200,11 @@ type OKResponse struct{
 	Uid 	string	`json:"uid"`
 }
 
+func GetMD5Hash(text string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
 
 func OKGetCode(ctx *iris.Context) (string, string, error)  {
 	code := ctx.URLParam("code")
@@ -221,9 +227,10 @@ func OKGetCode(ctx *iris.Context) (string, string, error)  {
 	if answer.Error != "" {
 		return "", "", errors.New(answer.Error)
 	}
-	md5_code := md5.Sum([]byte(answer.Access_token + secret_key))
-	params := append([]byte("application_key=CBAEOIHLEBABABABAformat=jsonmethod=users.getCurrentUser"), md5_code[:]...)
-	sig := md5.Sum(params)
+	md5_code := GetMD5Hash(answer.Access_token + secret_key)
+	//new_code_params := string(md5_code[:]
+	//params := append([]byte("application_key=CBAEOIHLEBABABABAformat=jsonmethod=users.getCurrentUser"), md5_code[:]...)
+	sig := GetMD5Hash("application_key=CBAEOIHLEBABABABAformat=jsonmethod=users.getCurrentUser" + md5_code)
 	new_url := fmt.Sprintf("https://api.ok.ru/fb.do?application_key=CBAEOIHLEBABABABA&format=json&method=users.getCurrentUser&sig=%s&access_token=%s", string(sig[:]), answer.Access_token)
 	new_resp, err := http.Get(new_url)
 	if err!=nil{
