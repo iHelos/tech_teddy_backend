@@ -124,6 +124,9 @@ func main() {
 	apisocial.Get("ok", view.OKLoginPage)
 	apisocial.Get("ok/getcode", view.OKGetCode)
 
+	apisocial.Get("success")
+	apisocial.Get("error")
+
 	apistore := api.Party("/store/")
 	//apistore.Any("/story/add", func(ctx *iris.Context) {
 	//	story_obj, err := store.AddStory(ctx, &storystorage)
