@@ -8,10 +8,6 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"log"
-	"net/http"
-	"io/ioutil"
-	"encoding/json"
-	"fmt"
 )
 
 var google_client *storage.Client
