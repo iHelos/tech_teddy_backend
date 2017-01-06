@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"time"
 	"math/rand"
+	"crypto/md5"
 )
 
 const (
@@ -136,7 +137,7 @@ func LikeStory(ctx *iris.Context) (error) {
 }
 
 type vkCode struct {
-	Access_token string `json:"access_token"`
+	Access_token string 	`json:"access_token"`
 	User_id      int        `json:"user_id"`
 	Email        string        `json:"email"`
 	Error        string        `json:"error"`
@@ -173,6 +174,70 @@ func VKGetCode(ctx *iris.Context) (string, string, error) {
 	if profile.Email == ""{
 		profile.Email = answer.Email
 		profile.Name = string(answer.User_id)
+		profile.Password = randStringRunes(10)
+		profile, err = model.CreateProfile(profile)
+		if err != nil{
+			return "", "", err
+		}
+	}
+	userToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  profile.ID,
+		"type":"user",
+	})
+	bearToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  profile.ID,
+		"type":"bear",
+	})
+	userTokenSigned, err := userToken.SignedString([]byte(hmacUserSecret))
+	bearTokenSigned, err := bearToken.SignedString([]byte(hmacUserSecret))
+	return userTokenSigned, bearTokenSigned, nil
+}
+
+type OKResponse struct{
+	Email 	string	`json:"email"`
+	Name	string	`json:"name"`
+	Uid 	string	`json:"uid"`
+}
+
+
+func OKGetCode(ctx *iris.Context) (string, string, error)  {
+	code := ctx.URLParam("code")
+	if (code == "") {
+		err_str := ctx.URLParam("error")
+		return "", "", errors.New(err_str)
+	}
+	secret_key := "95224E00D3EE4887818C6A48"
+	OKurl := fmt.Sprintf("https://api.ok.ru/oauth/token.do?code=%s&client_id=%s&client_secret=%s&redirect_uri=%s&grant_type=%s",
+		code, "1249370880", secret_key, "https://magicbackpack.ru/api/social/ok/getcode", "authorization_code")
+
+	resp, err := http.Post(OKurl,"application/json", nil)
+	if err!=nil{
+		return "", "", err
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	var answer vkCode
+	json.Unmarshal(body, &answer)
+	if answer.Error != "" {
+		return "", "", errors.New(answer.Error)
+	}
+	md5_code := md5.Sum([]byte(answer.Access_token + secret_key))
+	params := append([]byte("application_key=CBAEOIHLEBABABABAformat=jsonmethod=users.getCurrentUser"), md5_code[:]...)
+	sig := md5.Sum(params)
+	new_url := fmt.Sprintf("https://api.ok.ru/fb.do?application_key=CBAEOIHLEBABABABA&format=json&method=users.getCurrentUser&sig=%s&access_token=%s", string(sig), answer.Access_token)
+	new_resp, err := http.Get(new_url)
+	if err!=nil{
+		return "", "", err
+	}
+	defer new_resp.Body.Close()
+	body, _ = ioutil.ReadAll(new_resp.Body)
+	var user_info OKResponse
+	json.Unmarshal(body, &user_info)
+
+	profile, err := model.GetProfileEmail(user_info.Uid)
+	if profile.Email == ""{
+		profile.Email = user_info.Uid
+		profile.Name = string(user_info.Name)
 		profile.Password = randStringRunes(10)
 		profile, err = model.CreateProfile(profile)
 		if err != nil{
