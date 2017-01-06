@@ -172,7 +172,7 @@ func VKGetCode(ctx *iris.Context){
 }
 
 func OKLoginPage(ctx *iris.Context){
-	ctx.Redirect("https://connect.ok.ru/oauth/authorize?client_id=1249370880&scope=GET_EMAIL&response_type=code&redirect_uri=https://magicbackpack.ru/api/social/ok/getcode" )
+	ctx.Redirect("https://connect.ok.ru/oauth/authorize?client_id=1249370880&scope=GET_EMAIL&response_type=code&redirect_uri=https://magicbackpack.ru/api/social/ok/getcode&layout=m" )
 }
 
 func OKGetCode(ctx *iris.Context){
