@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"github.com/asaskevich/govalidator"
 	"github.com/labstack/gommon/log"
+	"strings"
 )
 
 type Profile struct {
@@ -100,6 +101,7 @@ func decodeProfile(d *msgpack.Decoder, v reflect.Value) error {
 }
 
 func CreateProfile(new_profile Profile) (created_profile Profile, err error){
+	new_profile.Email = strings.ToLower(new_profile.Email)
 	var profiles []Profile
 	err = client.Call17Typed("box.space.user:auto_increment", []interface{}{new_profile}, &profiles)
 	if err!=nil {
@@ -117,6 +119,16 @@ func UpdateProfile(new_profile Profile) (updated_profile Profile, err error){
 func GetProfile(id int) (profile Profile, err error){
 	var profiles []Profile
 	err = client.SelectTyped("user", "primary", 0,1, tarantool.IterEq, []interface{}{uint(id)}, &profiles)
+	if len(profiles)>0 {
+		return profiles[0], err
+	}
+	return profile, errors.New("not exists")
+}
+
+func GetProfileEmail(email string) (profile Profile, err error){
+	email = strings.ToLower(email)
+	var profiles []Profile
+	err = client.SelectTyped("user", "email", 0,1, tarantool.IterEq, []interface{}{email}, &profiles)
 	if len(profiles)>0 {
 		return profiles[0], err
 	}
@@ -190,3 +202,4 @@ func AddStory(id int, sid int) (error){
 	_, err := client.Call("likeStory", []interface{}{id, sid})
 	return err
 }
+
