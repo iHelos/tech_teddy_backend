@@ -168,15 +168,16 @@ func VKGetCode(ctx *iris.Context) (string, string, error) {
 	if answer.Error != "" {
 		return "", "", errors.New(answer.Error)
 	}
+	log.Print(answer)
 	profile, err := model.GetProfileEmail(answer.Email)
 	if profile.Email == ""{
 		profile.Email = answer.Email
 		profile.Name = string(answer.User_id)
 		profile.Password = randStringRunes(10)
-	}
-	profile, err = model.CreateProfile(profile)
-	if err != nil{
-		return "", "", err
+		profile, err = model.CreateProfile(profile)
+		if err != nil{
+			return "", "", err
+		}
 	}
 	userToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":  profile.ID,
