@@ -324,7 +324,7 @@ func FBGetCode(ctx *iris.Context) (string, string, error)  {
 	} else {
 		profile, err = model.GetProfileEmail(user_info.Id)
 		if profile.Email == ""{
-			profile.Email = user_info.Email
+			profile.Email = user_info.Id
 			profile.Name = user_info.Name
 			profile.Password = randStringRunes(10)
 			profile, err = model.CreateProfile(profile)

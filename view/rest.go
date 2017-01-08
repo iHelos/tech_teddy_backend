@@ -182,7 +182,7 @@ func OKGetCode(ctx *iris.Context){
 
 
 func FBLoginPage(ctx *iris.Context){
-	ctx.Redirect("https://www.facebook.com/v2.8/dialog/oauth?client_id=1788033858126569&redirect_uri=https://magicbackpack.ru/api/social/fb/getcode   &scope=email" )
+	ctx.Redirect("https://www.facebook.com/v2.8/dialog/oauth?client_id=1788033858126569&redirect_uri=https://magicbackpack.ru/api/social/fb/getcode&scope=email" )
 }
 
 func FBGetCode(ctx *iris.Context){
