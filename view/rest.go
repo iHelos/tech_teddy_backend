@@ -186,7 +186,7 @@ func FBLoginPage(ctx *iris.Context){
 }
 
 func FBGetCode(ctx *iris.Context){
-	userToken, bearToken, err := logic.OKGetCode(ctx)
+	userToken, bearToken, err := logic.FBGetCode(ctx)
 	if err != nil {
 		ctx.Redirect("https://magicbackpack.ru/api/social/error?err="+err.Error())
 	} else {
