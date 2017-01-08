@@ -283,7 +283,7 @@ func FBGetCode(ctx *iris.Context) (string, string, error)  {
 		return "", "", errors.New(err_str)
 	}
 	secret_key := "a8bb5e292d234b5287c909cdba79d999"
-	FBurl := fmt.Sprintf("GET https://graph.facebook.com/v2.8/oauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s",
+	FBurl := fmt.Sprintf("https://graph.facebook.com/v2.8/oauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s",
 		"1788033858126569", "https://magicbackpack.ru/api/social/fb/getcode", secret_key, code)
 
 	resp, err := http.Get(FBurl)
