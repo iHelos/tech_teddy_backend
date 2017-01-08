@@ -117,6 +117,9 @@ func main() {
 	apisocial.Get("ok", view.OKLoginPage)
 	apisocial.Get("ok/getcode", view.OKGetCode)
 
+	apisocial.Get("fb", view.FBLoginPage)
+	apisocial.Get("fb/getcode", view.FBGetCode)
+
 	apisocial.Get("success")
 	apisocial.Get("error")
 

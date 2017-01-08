@@ -179,3 +179,17 @@ func OKGetCode(ctx *iris.Context){
 		ctx.Redirect("https://magicbackpack.ru/api/social/success?userToken="+userToken+"&bearToken="+bearToken)
 	}
 }
+
+
+func FBLoginPage(ctx *iris.Context){
+	ctx.Redirect("https://www.facebook.com/v2.8/dialog/oauth?client_id=1788033858126569&redirect_uri=https://magicbackpack.ru/api/social/fb/getcode&scope=email" )
+}
+
+func FBGetCode(ctx *iris.Context){
+	userToken, bearToken, err := logic.OKGetCode(ctx)
+	if err != nil {
+		ctx.Redirect("https://magicbackpack.ru/api/social/error?err="+err.Error())
+	} else {
+		ctx.Redirect("https://magicbackpack.ru/api/social/success?userToken="+userToken+"&bearToken="+bearToken)
+	}
+}
