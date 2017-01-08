@@ -20,6 +20,7 @@ type Story struct {
 	DurationSplitted Duration 	`json:"duration_splitted"`
 	ImgUrls          UrlImage 	`json:"img_urls"`
 	Parts            []StoryPart 	`json:"story_parts"`
+	Roles            []string 	`json:"roles"`
 }
 
 type StoryPart struct {
@@ -28,6 +29,7 @@ type StoryPart struct {
 	Part 	string 		`json:"title"`
 	Audio 	UrlAudio 	`json:"audio_urls"`
 	Size	int 		`json:"size"`
+	Role	string		`json:"role"`
 }
 
 type Duration struct {
@@ -59,14 +61,14 @@ type UrlAudio struct {
 func encodeStory(e *msgpack.Encoder, v reflect.Value) error {
 	m := v.Interface().(Story)
 	if m.ID > 0 {
-		if err := e.EncodeArrayLen(11); err != nil {
+		if err := e.EncodeArrayLen(12); err != nil {
 			return err
 		}
 		if err := e.EncodeInt(m.ID); err != nil {
 			return err
 		}
 	} else{
-		if err := e.EncodeArrayLen(10); err != nil {
+		if err := e.EncodeArrayLen(11); err != nil {
 			return err
 		}
 	}
@@ -99,6 +101,12 @@ func encodeStory(e *msgpack.Encoder, v reflect.Value) error {
 	for _, c := range m.Parts {
 		e.Encode(c)
 	}
+	if err := e.EncodeArrayLen(len(m.Roles)); err != nil {
+		return err
+	}
+	for _, l := range m.Roles {
+		e.EncodeString(l)
+	}
 	return nil
 }
 func decodeStory(d *msgpack.Decoder, v reflect.Value) error {
@@ -108,7 +116,7 @@ func decodeStory(d *msgpack.Decoder, v reflect.Value) error {
 	if l, err = d.DecodeArrayLen(); err != nil {
 		return err
 	}
-	if l != 11 {
+	if l != 12 {
 		return fmt.Errorf("array len doesn't match: %d", l)
 	}
 	if m.ID, err = d.DecodeInt(); err != nil {
@@ -145,6 +153,13 @@ func decodeStory(d *msgpack.Decoder, v reflect.Value) error {
 		d.Decode(&m.Parts[i])
 		m.Parts[i].ID = strconv.Itoa(m.ID) + "_" + strconv.Itoa(i+1)
 	}
+	if l, err = d.DecodeArrayLen(); err != nil {
+		return err
+	}
+	m.Roles = make([]string, l)
+	for i := 0; i < l; i++ {
+		m.Roles[i],_ = d.DecodeString()
+	}
 	return nil
 }
 
@@ -153,7 +168,7 @@ func decodeStory(d *msgpack.Decoder, v reflect.Value) error {
 //3) Audio 	UrlAudio
 func encodeStoryPart(e *msgpack.Encoder, v reflect.Value) error {
 	m := v.Interface().(StoryPart)
-	if err := e.EncodeArrayLen(4); err != nil {
+	if err := e.EncodeArrayLen(5); err != nil {
 		return err
 	}
 	if err := e.EncodeString(m.Text); err != nil {
@@ -166,6 +181,9 @@ func encodeStoryPart(e *msgpack.Encoder, v reflect.Value) error {
 	if err := e.EncodeInt(m.Size); err != nil {
 		return err
 	}
+	if err := e.EncodeString(m.Role); err != nil {
+		return err
+	}
 	return nil
 }
 func decodeStoryPart(d *msgpack.Decoder, v reflect.Value) error {
@@ -175,7 +193,7 @@ func decodeStoryPart(d *msgpack.Decoder, v reflect.Value) error {
 	if l, err = d.DecodeArrayLen(); err != nil {
 		return err
 	}
-	if l != 4 {
+	if l != 5 {
 		return fmt.Errorf("array len doesn't match: %d", l)
 	}
 	if m.Text, err = d.DecodeString(); err != nil {
@@ -186,6 +204,9 @@ func decodeStoryPart(d *msgpack.Decoder, v reflect.Value) error {
 	}
 	d.Decode(&m.Audio)
 	if m.Size, err = d.DecodeInt(); err != nil {
+		return err
+	}
+	if m.Role, err = d.DecodeString(); err != nil {
 		return err
 	}
 	return nil

@@ -52,8 +52,10 @@ func ExampleReverse() {
 					Original:"http://storage.googleapis.com/hardteddy_stories/mp3/1.mp3",
 				},
 				Size:2843501,
+				Role:"",
 			},
 		},
+		Roles:[]string{},
 	}
 	UpdateStory(story)
 	fmt.Println(story.Name)
@@ -63,14 +65,15 @@ func ExampleReverse() {
 
 func ExampleStory() {
 	story := Story{
-		ID:14,
-		Name:"солнце и ветер",
+		ID:15,
+		Name:"солнце и ветер часть 2. возвращение путника",
 		Category:4,
 		Price:0,
 		Duration:"02:05",
 		Description:"сказка о том, как солнце и ветер поспорили",
 		AuthorID:1,
 		Roled:true,
+		Roles:[]string{"ветер", "солнце", "рассказчик"},
 		DurationSplitted:Duration{
 			Minutes:2,
 			Seconds:5,
@@ -87,6 +90,7 @@ func ExampleStory() {
 					Raw:"http://storage.googleapis.com/hardteddy_stories/14_1.raw",
 					Original:"http://storage.googleapis.com/hardteddy_stories/mp3/14_1.mp3",
 				},
+				Role:"рассказчик",
 				Size:148570,
 			},
 			{
@@ -96,6 +100,7 @@ func ExampleStory() {
 					Raw:"http://storage.googleapis.com/hardteddy_stories/14_2.raw",
 					Original:"http://storage.googleapis.com/hardteddy_stories/mp3/14_2.mp3",
 				},
+				Role:"ветер",
 				Size:72860,
 			},
 			{
@@ -105,6 +110,7 @@ func ExampleStory() {
 					Raw:"http://storage.googleapis.com/hardteddy_stories/14_3.raw",
 					Original:"http://storage.googleapis.com/hardteddy_stories/mp3/14_3.mp3",
 				},
+				Role:"рассказчик",
 				Size:115510,
 			},
 			{
@@ -114,6 +120,7 @@ func ExampleStory() {
 					Raw:"http://storage.googleapis.com/hardteddy_stories/14_4.raw",
 					Original:"http://storage.googleapis.com/hardteddy_stories/mp3/14_4.mp3",
 				},
+				Role:"солнце",
 				Size:85510,
 			},
 		},
