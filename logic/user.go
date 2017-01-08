@@ -263,3 +263,85 @@ func OKGetCode(ctx *iris.Context) (string, string, error)  {
 	bearTokenSigned, err := bearToken.SignedString([]byte(hmacUserSecret))
 	return userTokenSigned, bearTokenSigned, nil
 }
+
+type FBTokenResponse struct{
+	Access_token 	string	`json:"access_token"`
+	Token_type	string	`json:"token_type"`
+	Expires_in 	int	`json:"expires_in"`
+}
+
+type FBUserInfo struct{
+	Id 	string	`json:"id"`
+	Name	string	`json:"name"`
+	Email 	string	`json:"email"`
+}
+
+func FBGetCode(ctx *iris.Context) (string, string, error)  {
+	code := ctx.URLParam("code")
+	if (code == "") {
+		err_str := ctx.URLParam("error")
+		return "", "", errors.New(err_str)
+	}
+	secret_key := "a8bb5e292d234b5287c909cdba79d999"
+	FBurl := fmt.Sprintf("GET https://graph.facebook.com/v2.8/oauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s",
+		"1788033858126569", secret_key, "https://magicbackpack.ru/api/social/fb/getcode", code)
+
+	resp, err := http.Get(FBurl)
+	if err!=nil{
+		return "", "", err
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	var answer FBTokenResponse
+	json.Unmarshal(body, &answer)
+	if answer.Access_token == "" {
+		return "", "", errors.New("no token")
+	}
+	new_url := fmt.Sprintf("https://graph.facebook.com/v2.8/me?fields=id,name,email&access_token=%s",
+		answer.Access_token,
+	)
+	new_resp, err := http.Get(new_url)
+	if err!=nil{
+		return "", "", err
+	}
+	defer new_resp.Body.Close()
+	body, _ = ioutil.ReadAll(new_resp.Body)
+	var user_info FBUserInfo
+	json.Unmarshal(body, &user_info)
+
+	var profile model.Profile
+	if user_info.Email != ""{
+		profile, err = model.GetProfileEmail(user_info.Email)
+		if profile.Email == ""{
+			profile.Email = user_info.Email
+			profile.Name = user_info.Name
+			profile.Password = randStringRunes(10)
+			profile, err = model.CreateProfile(profile)
+			if err != nil{
+				return "", "", err
+			}
+		}
+	} else {
+		profile, err = model.GetProfileEmail(user_info.Id)
+		if profile.Email == ""{
+			profile.Email = user_info.Email
+			profile.Name = user_info.Name
+			profile.Password = randStringRunes(10)
+			profile, err = model.CreateProfile(profile)
+			if err != nil{
+				return "", "", err
+			}
+		}
+	}
+	userToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  profile.ID,
+		"type":"user",
+	})
+	bearToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  profile.ID,
+		"type":"bear",
+	})
+	userTokenSigned, err := userToken.SignedString([]byte(hmacUserSecret))
+	bearTokenSigned, err := bearToken.SignedString([]byte(hmacUserSecret))
+	return userTokenSigned, bearTokenSigned, nil
+}
