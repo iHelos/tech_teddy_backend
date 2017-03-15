@@ -6,7 +6,6 @@ import (
 	"log"
 	"fmt"
 	"io/ioutil"
-	"os"
 )
 
 type DeployConfiguration struct {
@@ -22,10 +21,9 @@ type DatabaseConfiguration struct {
 }
 
 func GetConfiguration (filepath string) *DeployConfiguration{
-	file, e := ioutil.ReadFile(filepath)
-	if e != nil {
-		fmt.Printf("File error: %v\n", e)
-		os.Exit(1)
+	file, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		log.Fatalf("Failed to read configuration: %s", err.Error())
 	}
 	fmt.Printf("%s\n", string(file))
 
@@ -33,7 +31,7 @@ func GetConfiguration (filepath string) *DeployConfiguration{
 	//var m interface{}
 
 	configuration := DeployConfiguration{}
-	err := json.Unmarshal(file, &configuration)
+	err = json.Unmarshal(file, &configuration)
 	if err!=nil{
 		log.Print(err)
 	}

@@ -6,17 +6,22 @@ import (
 	"log"
 	"time"
 	"os"
-	sessionDB "github.com/iHelos/tech_teddy/models/session"
-	"github.com/iHelos/tech_teddy/helper/filelogger"
-	teddyUsers "github.com/iHelos/tech_teddy/models/user"
-	"github.com/iHelos/tech_teddy/models/story"
-	"github.com/iHelos/tech_teddy/models/user/tarantool-user-storage"
 	"github.com/iHelos/tech_teddy/deploy-config"
-	"github.com/iHelos/tech_teddy/helper/REST"
+	"github.com/iris-contrib/middleware/cors"
+	"cloud.google.com/go/storage"
+	"context"
+	"google.golang.org/api/option"
+	"fmt"
+	"io/ioutil"
+	"github.com/iHelos/tech_teddy/model"
+	"github.com/iHelos/tech_teddy/view"
+	"github.com/iris-contrib/middleware/logger"
+	"github.com/iris-contrib/middleware/recovery"
 )
 
-var userstorage *teddyUsers.UserStorage
 var config *deploy_config.DeployConfiguration
+var google_client *storage.Client
+var cors_obj *cors.Cors
 
 func init() {
 	config = deploy_config.GetConfiguration("./deploy.config")
@@ -30,20 +35,10 @@ func init() {
 		Pass:          config.Database.Password,
 	}
 
-	client, err := tarantool.Connect(server, opts)
-	if err != nil {
-		log.Fatalf("Failed to connect: %s", err.Error())
-	}
-	resp, err := client.Ping()
-	log.Println(resp.Code)
-	log.Println(resp.Data)
-	log.Println(err)
+	model.InitDB(server,opts)
 
-	sessionstorage := sessionDB.SessionConnection{client}
-
-	userstorage = teddyUsers.New(iris.Config.Sessions.Cookie)
-	userstorage.Engine = tarantool_user_storage.StorageConnection{client}
-	iris.UseSessionDB(sessionstorage)
+	iris.Use(logger.New())
+	iris.Use(recovery.New())
 
 	iris.Config.IsDevelopment = false
 	iris.Config.Gzip = false
@@ -51,9 +46,35 @@ func init() {
 	iris.Config.Sessions.DisableSubdomainPersistence = false
 	iris.StaticServe("./static/web_files", "/static")
 
-	//iris.UseTemplate(html.New(html.Config{
-	//	Layout: "layout.html",
-	//})).Directory("./templates", ".html")
+	ctx := context.Background()
+	google_client, err := storage.NewClient(
+		ctx,
+		option.WithServiceAccountFile("./gostorage.json"),
+	)
+	if err != nil {
+		log.Print("1) ", err)
+	}
+	_ = google_client
+	bkt := google_client.Bucket("hardteddy_stories")
+	attrs, err := bkt.Attrs(ctx)
+	if err != nil {
+		log.Print("2)", err)
+	}
+	fmt.Printf("bucket %s, created at %s, is located in %s with storage class %s\n",
+		attrs.Name, attrs.Created, attrs.Location, attrs.StorageClass)
+	storage_opts := storage.SignedURLOptions{}
+	storage_opts.PrivateKey, err = ioutil.ReadFile("./gostorage.pem")
+	if err != nil{
+		log.Print(err)
+	}
+	storage_opts.Expires = time.Now().Add(time.Minute)
+	storage_opts.Method = "GET"
+	storage_opts.GoogleAccessID = "116466809002114199830"
+	url, err := storage.SignedURL("hardteddy_stories", "report.pdf", &storage_opts)
+	if err != nil {
+		log.Print(err)
+	}
+	fmt.Println(url)
 }
 
 func main() {
@@ -62,95 +83,53 @@ func main() {
 	if port == "" {
 		port = config.Port
 	}
-	iris.Use(filelogger.New("logs/all.log"))
-	iris.Get("/", func(ctx *iris.Context) {
-		ctx.Render("index.html", nil)
-	})
 
-	iris.Get("/mock", func(ctx *iris.Context) {
-		body := make([]map[string]string, 2)
-		body[0] = map[string]string{
-			"name":"iHelos",
-			"email":"ihelos.ermakov@gmail.com",
-		}
-		body[1] = map[string]string{
-			"name":"AnnJelly",
-			"email":"annjellyiu5@gmail.com",
-		}
+	cors_config := cors.Options{
+		AllowedOrigins:[]string{"*"},
+		AllowedMethods:[]string{"GET", "POST", "OPTIONS", ""},
+		AllowCredentials:true,
+		MaxAge:5,
+		Debug:false,
+	}
+	cors_obj := cors.New(cors_config)
+	iris.Use(cors_obj)
 
-		ctx.JSON(iris.StatusOK, REST.GetResponse(0, body))
-	})
+	//iris.Use(helper.New("logs/all.log"))
 
-	iris.Get("/profile", userstorage.MustBeLogged, func(ctx *iris.Context) {
-		err := userstorage.LoginUser(ctx)
-		log.Print(err)
-	})
-
-	iris.Get("/story/:id", func(ctx *iris.Context) {
-		id := ctx.Param("id")
-		if id == "1" {
-			ctx.SendFile("./static/audio/music.mp3", "music.mp3")
-		} else {
-			ctx.SendFile("./static/audio/story.mp3", "story.mp3")
-		}
-
-	})
+	iris.Get("/", view.RenderPage)
+	iris.Post("/upload/story/:id", view.UploadStory)
+	iris.Post("/upload/smallimg/:id", view.UploadSmallImage)
+	iris.Post("/upload/largeimg/:id", view.UploadLargeImage)
 
 	api := iris.Party("/api/")
-	api.Get("/", func(ctx *iris.Context) {
-		ctx.Redirect("http://docs.hardteddy.apiary.io")
-	})
-	saveapi := api.Party("/saveapi/")
-	saveapi.Use(filelogger.New("logs/log.log"))
-	saveapi.Get("*randomName", func(ctx *iris.Context) {
-
-	})
-	saveapi.Post("*randomName", func(ctx *iris.Context) {
-
-	})
-
-	api.Get("/allstories", func(ctx *iris.Context) {
-		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
-			"stories":story.GetAllStories(),
-		}))
-	})
-
-	api.Get("/mystories", func(ctx *iris.Context) {
-		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]interface{}{
-			"stories":story.GetMyStories(),
-		}))
-	})
+	api.Get("/", view.ApiRedirect)
 
 	// Пользовательские вьюхи
 	apiuser := api.Party("/user/")
-	apiuser.Use(filelogger.New("logs/userlog.log"))
-	apiuser.Post("/login", func(ctx *iris.Context) {
-		err := userstorage.LoginUser(ctx)
-		if err != nil {
-			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
-		} else {
-			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
-		}
-	})
+	apiuser.Post("/login", view.Login)
+	apiuser.Post("/signup", view.Register)
+	apiuser.Get("/mystories", view.MustBeLogged, view.GetUserStories)
 
-	apiuser.Post("/register", func(ctx *iris.Context) {
-		err := userstorage.CreateUser(ctx)
-		if err != nil {
-			ctx.JSON(iris.StatusOK, REST.GetResponse(1, err.(*teddyUsers.UserError).Messages))
-		}        else {
-			ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"irissessionid":ctx.Session().ID()}))
-		}
-	})("register")
+	apisocial := api.Party("/social/")
+	apisocial.Get("vk", view.VKLoginPage)
+	apisocial.Get("vk/getcode", view.VKGetCode)
 
-	apiuser.Get("/sendall", func(ctx *iris.Context) {
-		teddyUsers.SendAll()
-		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"":""}))
-	})
+	apisocial.Get("ok", view.OKLoginPage)
+	apisocial.Get("ok/getcode", view.OKGetCode)
 
-	apiuser.Post("/logout", func(ctx *iris.Context) {
-		ctx.SessionDestroy()
-		ctx.JSON(iris.StatusOK, REST.GetResponse(0, map[string]string{"":""}))
-	})
+	apisocial.Get("fb", view.FBLoginPage)
+	apisocial.Get("fb/getcode", view.FBGetCode)
 
+	apisocial.Get("success")
+	apisocial.Get("error")
+
+	apistore := api.Party("/store/")
+	apistore.Get("/story/", view.GetStories)
+	apistore.Get("/categories/", view.GetCategories)
+	apistore.Post("/buy", view.UserLikeStory)
+	apistore.Get("/search/", view.Search)
+
+//	iris.Set(iris.OptionMaxRequestBodySize(64 << 20))
 	iris.Listen(config.Host + ":" + port)
+//	iris.ListenLETSENCRYPT(config.Host + ":" + port)
 }

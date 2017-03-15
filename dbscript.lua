@@ -128,17 +128,30 @@ box.cfg {
 
 local function bootstrap()
     local space = box.schema.create_space('sessions')
-    space:create_index('primary', { type = 'hash', parts = { 1, 'string' } })
+    space:create_index('primary', {type = 'hash', parts = { 1, 'string'}})
+    -- name, email, password, audios, bears
     local profilespace = box.schema.create_space('profile')
-    profilespace:create_index('primary', { type = 'hash', parts = { 1, 'string' } })
+    profilespace:create_index('primary', {type = 'tree', parts = {1, 'unsigned'}})
+    --
     local toyspace = box.schema.create_space('toy')
-    toyspace:create_index('primary', { type = 'hash', parts = { 1, 'unsigned' } })
+    toyspace:create_index('primary', {type = 'hash', parts = {1, 'unsigned'}})
+    --id, category, name, price, duration, descriprion, author
     local audiospace = box.schema.create_space('audio')
-    audiospace:create_index('primary', { type = 'hash', parts = { 1, 'unsigned' } })
-
+    audiospace:create_index('primary', {type = 'tree', parts = {1, 'unsigned'}})
+    audiospace:create_index('cat_name', {type='tree',unique=true, parts = {2,'unsigned',3,'string'}})
+    audiospace:create_index('cat_price_name', {type='tree',unique=true, parts = {2,'unsigned',4,'unsigned',3,'string'}})
+    audiospace:create_index('cat_duration_name', {type='tree',unique=true, parts = {2,'unsigned',5,'string',3,'string'}})
+    audiospace:create_index('name', {type='tree',unique=true, parts = {3,'string'}})
+    audiospace:create_index('price_name', {type='tree',unique=true, parts = {4,'unsigned',3,'string'}})
+    audiospace:create_index('duration_name', {type='tree',unique=true, parts = {5,'string',3,'string'}})
     box.schema.func.create('getProfile')
     box.schema.func.create('createProfile')
-
+    box.schema.func.create('isLogined')
+    box.schema.func.create('getAllStories')
+    box.schema.func.create('getAllCategoryStories')
+    box.schema.func.create('getUserStories')
+    box.schema.func.create('buyStory')
+    box.schema.func.create('findStory')
     -- Comment this if you need fine grained access control (without it, guest
     -- will have access to everything)
     -- box.schema.user.grant('goClient', 'read,write,execute', 'universe')
@@ -152,6 +165,12 @@ local function bootstrap()
     box.schema.user.grant('goClient', 'read,write,execute', 'space', 'audio')
     box.schema.user.grant('goClient', 'execute', 'function', 'getProfile')
     box.schema.user.grant('goClient', 'execute', 'function', 'createProfile')
+    box.schema.user.grant('goClient', 'execute', 'function', 'isLogined')
+    box.schema.user.grant('goClient', 'execute', 'function', 'getAllStories')
+    box.schema.user.grant('goClient', 'execute', 'function', 'getAllCategoryStories')
+    box.schema.user.grant('goClient', 'execute', 'function', 'getUserStories')
+    box.schema.user.grant('goClient', 'execute', 'function', 'buyStory')
+    box.schema.user.grant('goClient', 'execute', 'function', 'findStory')
 end
 
 -- for first run create a space and add set up grants
@@ -183,4 +202,127 @@ function isLogined(sid)
         end
         return error("no such user")
     end
+end
+
+function getAllStories(offset, limit, order, ordertype)
+    if ordertype == 1 then
+        localiterat = box.index.GE
+    else
+        localiterat = box.index.LE
+    end
+    if order == 0 then
+        stories = box.space.audio.index.name:select({},{iterator=localiterat, offset=offset, limit=limit})
+    elseif order == 1 then
+        stories = box.space.audio.index.price_name:select({},{iterator=localiterat, offset=offset, limit=limit})
+    elseif order == 2 then
+        stories = box.space.audio.index.duration_name:select({},{iterator=localiterat, offset=offset, limit=limit})
+    end
+    return stories
+end
+
+function getAllCategoryStories(category, offset, limit, order, ordertype)
+    if ordertype == 1 then
+        localiterat = box.index.EQ
+    else
+        localiterat = box.index.REQ
+    end
+    if order == 0 then
+        stories = box.space.audio.index.cat_name:select({category},{iterator=localiterat, offset=offset, limit=limit})
+    elseif order == 1 then
+        stories = box.space.audio.index.cat_price_name:select({category},{iterator=localiterat, offset=offset, limit=limit})
+    elseif order == 2 then
+        stories = box.space.audio.index.cat_duration_name:select({category},{iterator=localiterat, offset=offset, limit=limit})
+    end
+    return stories
+end
+
+function getUserStories(userID)
+    user = box.space.user:get{userID}
+    stories = {}
+    for i, v in ipairs(user[5]) do
+        tempstory = box.space.audio:get{v}
+        table.insert(stories,tempstory)
+    end
+    return stories
+end
+
+function has_value (tab, val)
+    for index, value in ipairs (tab) do
+        if value == val then
+            return true
+        end
+    end
+    return false
+end
+
+function addStory(id, storyid)
+    user = box.space.user:get{id}
+    story = box.space.audio:get{storyid}
+    if user == nil then
+        return error("no such user")
+    end
+    if story == nil then
+        return error("no such story")
+    end
+    stories = user[5]
+    if has_value(stories, storyid) then
+        return error("already bought")
+    end
+    table.insert(stories, storyid)
+    table.sort(stories)
+    box.space.profile:update(userLogin, {{'=', 5, stories}})
+    return stories
+end
+
+-- Return the minimum of three elements
+function min(a, b, c)
+    return math.min(math.min(a, b), c)
+end
+
+-- Creates a 2D matrix
+function matrix(row,col)
+    local m = {}
+    for i = 1,row do m[i] = {}
+    for j = 1,col do m[i][j] = 0 end
+    end
+    return m
+end
+
+-- Calculates the Levenshtein distance between two strings
+function lev_iter_based(strA,strB)
+    local M = matrix(#strA+1,#strB+1)
+    local i,j,cost
+    local row,col = #M,#M[1]
+    for i = 1,row do M[i][1] = i-1 end
+    for j = 1,col do M[1][j] = j-1 end
+    for i = 2,row do
+        for j = 2,col do
+            if (strA:sub(i-1,i-1) == strB:sub(j-1,j-1)) then cost = 0
+            else cost = 1
+            end
+            M[i][j] = min(M[i-1][j]+1,M[i][j-1]+1,M[i-1][j-1]+cost)
+        end
+    end
+    return M[row][col]
+end
+
+function findStory(str)
+    stories = {}
+    for k, v in s:pairs() do
+        lev_dist = lev_iter_based(v[3]:lower(), str:lower())
+        if lev_dist < 3 then
+            table.insert(stories,v)
+        end
+    end
+    return stories
+end
+
+function addStory(name, description, author, duration, price, category)
+    local s = box.space.audio:auto_increment{category, name, price,duration, description, author}
+    return s
+end
+
+function addUser(emai, description, author, duration, price, category)
+    local s = box.space.audio:auto_increment{category, name, price,duration, description, author}
+    return s
 end
